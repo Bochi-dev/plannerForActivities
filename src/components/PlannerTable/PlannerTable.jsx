@@ -5,19 +5,8 @@ import { PlannerTableSlots } from "../../components"
 
 
 
-export const PlannerTable = ({operations, sunday, saturday, showModal}) => {
-  const weekDates = {
-    sunday: sunday,
-    monday: addToDate(sunday, 1),
-    tuesday: addToDate(sunday, 2),
-    wednesday: addToDate(sunday, 3),
-    thursday: addToDate(sunday, 4),
-    friday: addToDate(sunday, 5),
-    // If 'saturday' is guaranteed to be exactly 6 days after 'sunday', you could
-    // calculate it here: saturday: addToDate(sunday, 6), but using the potentially
-    // pre-defined 'saturday' variable matches the original logic more closely.
-    saturday: saturday
-  };
+export const PlannerTable = ({operations, sunday, saturday, showModal, weekDates}) => {
+  
 
   const [events, setEvents] = operations.eventsOperations
   const dataSource = events.map(el => {

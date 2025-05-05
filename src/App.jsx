@@ -13,26 +13,7 @@ export default function App () {
 
 
   const [events, setEvents] = useState([
-    {
-      "ID": 10,
-      "TITLE": "hello",
-      "DSC": "hello",
-      "STARTDATE": new Date("2025-04-28T04:00:00.000Z"),
-      "ENDDATE": new Date("2025-04-28T04:00:00.000Z"),
-      "ALLDAY": true,
-      "STARS": 0,
-      "DONE": false
-    },
-    {
-      "ID": 15,
-      "TITLE": "help",
-      "DSC": "hello",
-      "STARTDATE": new Date("2025-04-27T08:05:04.000Z"),
-      "ENDDATE": new Date("2025-05-02T12:05:00.000Z"),
-      "ALLDAY": false,
-      "STARS": 0,
-      "DONE": false
-    }
+    
   ])
   
   const [stars, setStars] = useState([

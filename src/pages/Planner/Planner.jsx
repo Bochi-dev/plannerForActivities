@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Badge, Modal, Button, Calendar } from 'antd';
-import { PlannerForm, PlannerTable, TableSlotsForm } from "../../components"
-
+import { PlannerForm, PlannerTable, TableSlotsForm, PlannerCard } from "../../components"
+import { addToDate } from "../../tools"
 const monthDictionary = {
   "0": "January",
   "1": "February",
@@ -62,6 +62,25 @@ export const Planner = ({operations}) => {
 
   const saturday = new Date(sunday)
   saturday.setDate(sunday.getDate() + 6)
+  
+  
+  const weekDates = {
+    sunday: sunday,
+    monday: addToDate(sunday, 1),
+    tuesday: addToDate(sunday, 2),
+    wednesday: addToDate(sunday, 3),
+    thursday: addToDate(sunday, 4),
+    friday: addToDate(sunday, 5),
+    // If 'saturday' is guaranteed to be exactly 6 days after 'sunday', you could
+    // calculate it here: saturday: addToDate(sunday, 6), but using the potentially
+    // pre-defined 'saturday' variable matches the original logic more closely.
+    saturday: saturday
+  };
+  
+  
+  
+  
+  
   const [formPage, setFormPage] = useState(0)
 
 
@@ -82,7 +101,9 @@ export const Planner = ({operations}) => {
   return (<>
     <Button type="primary" onClick={() => { showModal(0) }}>Add Event</Button>
     <h1>{monthDictionary[month]}</h1>
-    <PlannerTable operations={operations} sunday={sunday} saturday={saturday} showModal={showModal}/>
+    <PlannerTable operations={operations} sunday={sunday} saturday={saturday} showModal={showModal} weekDates={weekDates}/>
+    <PlannerCard operations={operations} sunday={sunday} saturday={saturday} showModal={showModal} />
+    
     <Modal title="Add Event" open={isModalOpen} footer={[]} onCancel={handleCancel} onOk={handleOk}>
       {(formPage === 0 ) ? <PlannerForm operations={operations} handleOk={handleOk}/> : <></>}
       {(formPage === 1 ) ? <TableSlotsForm/> : <></>}
