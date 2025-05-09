@@ -18,41 +18,6 @@ const monthDictionary = {
 };
 
 
-const getListData = value => {
-  let listData = []; // Specify the type of listData
-  switch (value.date()) {
-    case 8:
-      listData = [
-        { type: 'warning', content: 'This is warning event.' },
-        { type: 'success', content: 'This is usual event.' },
-      ];
-      break;
-    case 10:
-      listData = [
-        { type: 'warning', content: 'This is warning event.' },
-        { type: 'success', content: 'This is usual event.' },
-        { type: 'error', content: 'This is error event.' },
-      ];
-      break;
-    case 15:
-      listData = [
-        { type: 'warning', content: 'This is warning event' },
-        { type: 'success', content: 'This is very long usual event......' },
-        { type: 'error', content: 'This is error event 1.' },
-        { type: 'error', content: 'This is error event 2.' },
-        { type: 'error', content: 'This is error event 3.' },
-        { type: 'error', content: 'This is error event 4.' },
-      ];
-      break;
-    default:
-  }
-  return listData || [];
-};
-const getMonthData = value => {
-  if (value.month() === 8) {
-    return 1394;
-  }
-};
 export const Planner = ({operations}) => {
   const today = new Date()
   const month = today.getMonth()
@@ -65,16 +30,16 @@ export const Planner = ({operations}) => {
   
   
   const weekDates = {
-    sunday: sunday,
-    monday: addToDate(sunday, 1),
-    tuesday: addToDate(sunday, 2),
-    wednesday: addToDate(sunday, 3),
-    thursday: addToDate(sunday, 4),
-    friday: addToDate(sunday, 5),
+    Sunday: sunday,
+    Mon: addToDate(sunday, 1),
+    Tue: addToDate(sunday, 2),
+    Wed: addToDate(sunday, 3),
+    Thu: addToDate(sunday, 4),
+    Fri: addToDate(sunday, 5),
     // If 'saturday' is guaranteed to be exactly 6 days after 'sunday', you could
     // calculate it here: saturday: addToDate(sunday, 6), but using the potentially
     // pre-defined 'saturday' variable matches the original logic more closely.
-    saturday: saturday
+    Sat: saturday
   };
   
   

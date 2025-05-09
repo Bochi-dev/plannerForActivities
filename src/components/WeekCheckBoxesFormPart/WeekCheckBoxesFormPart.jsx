@@ -13,10 +13,10 @@ const daysMapping = {
     '6': 'S'  // Saturday
 };
 
-export const WeekCheckBoxesFormPart = () => {
-    // State stores the numerical indices (0-6) of selected days
-    // Initialize as an empty array.
-    const [selectedDays, setSelectedDays] = useState([]);
+// State stores the numerical indices (0-6) of selected days
+// Initialize as an empty array.
+export const WeekCheckBoxesFormPart = ({selectedDays, setSelectedDays}) => {
+    
 
     // Function to toggle a day by its numerical index
     // It takes the 'dayIndex' (0-6) as input
