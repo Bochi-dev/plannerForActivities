@@ -23,45 +23,8 @@ export const PlannerTable = ({operations, sunday, saturday, showModal, weekDates
 
   const [events, setEvents] = operations.eventsOperations
   
-//  ORIGINAL CODE TODO
   
-  /*const dataSource = events.map(el => {
-    const start = new Date(el["STARTDATE"])
-    const eventData = {
-          name: el.TITLE,
-      };
-    const repeatSettings = el["REPEATSETTINGS"]
-    const type = repeatSettings["TYPE"]
-  
-    if (type !== "NONE"){
-      const interval = repeatSettings["INTERVAL"]
-        if (type === "DAILY"){
-           const datesArray = []
-           for (let i = 0; i < 7; i++){
-            const intervalPlusDate = new Date(start.setDate(start.getDate() + interval))
-            datesArray.push(intervalPlusDate.getDate())
-           }
-          rowRender((dayDate => {
-            
-            if (interval === 1) {
-              return true
-            } else {
-              return datesArray.includes(dayDate.getDate())
-            } 
-          }), weekDates, eventData, operations, showModal)
-        } else if (type === "WEEKLY") {
-          const weeklyDays = repeatSettings["WEEKLYDAYS"]
-          rowRender((dayDate => {
-            return weeklyDays.includes(dayDate.getDay())
-          }), weekDates, eventData, operations, showModal)
-        }
-    
-    }
-    return eventData
-
-  }).filter(item => item !== null);*/
-  
-//  CODE FROM GEMINI TODO 
+    //  CODE FROM GEMINI TODO 
   
   // Assuming 'events', 'weekDates', 'operations', 'showModal' are accessible in this scope.
   // 'weekDates' is assumed to be an array of Date objects representing the days of the week being displayed.
@@ -70,13 +33,7 @@ export const PlannerTable = ({operations, sunday, saturday, showModal, weekDates
 
   // --- Helper Functions for Date Comparisons (can be in a separate 'dateUtils.js' file) ---
 
-
-  
-
-  
-
-  
-
+//    in timeTools.js
 
   // --- Main Map Logic (Optimized and Corrected) ---
 
@@ -86,9 +43,8 @@ export const PlannerTable = ({operations, sunday, saturday, showModal, weekDates
       // Assuming ENDDATE exists, otherwise default duration logic might be needed
       const originalEnd = new Date(el["ENDDATE"] || el["STARTDATE"]); // Use STARTDATE if ENDDATE is missing
 
-
       const eventData = {
-          name: el.TITLE,
+          name: <a onClick={() => {showModal(2, {id: el.ID})}} >{el.TITLE}</a>,
           // Include other relevant properties from the original event
           id: el["ID"],
           allDay: el["ALLDAY"],
