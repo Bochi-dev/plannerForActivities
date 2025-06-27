@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppstoreOutlined, MailOutlined, SettingOutlined } from '@ant-design/icons';
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom"
-import { Menu } from 'antd';
+import { Menu, Space } from 'antd';
 const items = [
   {
     key: '/',
@@ -16,21 +16,23 @@ const items = [
     label: 'Habits',
   },
 ];
-export const SideMenu = () => {
+export const SideMenu = ({ isInline = false }) => {
   const navigate = useNavigate()
   const onClick = ({key}) => {
       if (key === "signout") {
-  //                TODO, sign out feature here"
+      
       } else {
        navigate(key)
       }
   };
-  return (<div style={{display: "flex"}}>
+  return (
     <Menu
-      style={{width: 256}}
+      style={{backgroundColor: "#8EA4D2", color: 'white',}}
+      mode={ isInline ? "inline" : "horizontal"}
       onClick={onClick}
+      closable={false}
       items={items}
     />
-  </div>);
+    );
 };
 

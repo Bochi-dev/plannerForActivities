@@ -1,0 +1,41 @@
+@import 'antd/dist/reset.css';
+@import "tailwindcss";
+
+/* Default styles for larger screens (or no media query matching) */
+/* The SideMenu should be visible by default on larger screens */
+.headerMenu {
+    display: block; /* Or 'flex' if SideMenu needs a flex context */
+}
+
+/* The menu icon should be hidden by default on larger screens */
+.menuIcon {
+    display: none;
+}
+
+/* Styles for screens smaller than 501px */
+@media (max-width: 500px) {
+    .headerMenu {
+        display: none; /* Hide SideMenu on small screens */
+    }
+
+    .menuIcon {
+        display: flex;
+        /* CORRECTED: Use kebab-case for CSS properties */
+        align-items: center;
+        justify-content: space-between;
+        /* CORRECTED: Add 'px' unit for pixel values */
+        padding-right: 12px;
+    }
+}
+
+/* Styles for screens larger than 500px */
+/* This block is implicitly covered by the default styles above,
+   but defining it explicitly makes the intention clearer and can prevent issues. */
+/* @media (min-width: 501px) { */ /* It's good practice to ensure no overlap by using 501px */
+/* .headerMenu { */
+/* display: block; */ /* Show SideMenu on large screens */
+/* } */
+/* .menuIcon { */
+/* display: none; */ /* Hide menu icon on large screens */
+/* } */
+/* } */

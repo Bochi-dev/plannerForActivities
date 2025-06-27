@@ -26,8 +26,7 @@ import dayjs from 'dayjs'; // Using dayjs for easy date/time formatting
  * @param {any} props.star - The star status (unused in this rendering logic, using source.STARS instead for consistency).
  * @param {function} props.showModal - Function to show a modal, potentially for viewing/editing the event.
  */
-export const PlannerTableSlots = ({ source, operations, date, star, showModal }) => {
-
+export const PlannerTableSlots = ({ source, operations, date, rating, showModal }) => {
     // If no event source is provided, render nothing or a placeholder for an empty slot
     if (!source) {
         // You might return a button to add an event here, or just null/a simple div
@@ -56,7 +55,11 @@ export const PlannerTableSlots = ({ source, operations, date, star, showModal })
     const handleSlotClick = () => {
         // The original code called showModal(1). You might want to pass the event ID or object instead
         // to allow the modal to display details of the clicked event.
-        showModal(1); // Example: showModal({ type: 'view', event: source });
+        showModal((rating === undefined) ? 1 : 3, {
+            eventId: source.id, 
+            date: date,
+            ... (rating && {ratingId: rating.ID})    
+        }); // Example: showModal({ type: 'view', event: source });
     };
 
     return (

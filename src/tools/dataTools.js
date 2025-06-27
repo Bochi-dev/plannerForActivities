@@ -127,65 +127,83 @@ export const clearEventsFromLocalStorage = () => {
   }
 };
 
-// --- How to integrate with your React component ---
+// =======================================================================================================
 
-// 1. When your application or component loads (e.g., in a useEffect hook with an empty dependency array []),
-//    load the events:
-/*
-import React, { useEffect, useState } from 'react';
-import { loadEventsFromLocalStorage, saveEventsToLocalStorage } from './localStorageUtils'; // Assuming you save these functions in a file
+// --- Local Storage Utility Functions for Event Ratings ---
 
-const YourAppOrComponent = () => {
-    const [events, setEvents] = useState([]); // State to hold your events
+// Define a key to use for storing your ratings in local storage.
+// It's good practice to use a unique key to avoid conflicts.
+const EVENT_RATINGS_STORAGE_KEY = 'my_app_event_ratings'; // You can change this key
 
-    useEffect(() => {
-        const storedEvents = loadEventsFromLocalStorage();
-        setEvents(storedEvents); // Load events when the component mounts
-    }, []); // Empty dependency array means this runs once on mount
+/**
+ * Saves the list of event ratings to local storage.
+ * @param {Array<Object>} ratingsList - The array of rating objects to save.
+ * Each object should have the structure: { ID, EVENTID, RATING, DATE }
+ */
+export const saveRatingsToLocalStorage = (ratingsList) => {
+  try {
+    // 1. Convert the JavaScript array of objects into a JSON string.
+    const ratingsJsonString = JSON.stringify(ratingsList);
 
-    // ... rest of your component logic ...
+    // 2. Save the JSON string to local storage under the defined key.
+    localStorage.setItem(EVENT_RATINGS_STORAGE_KEY, ratingsJsonString);
 
-    // 2. When you add, edit, or delete an event (e.g., in your onFinish handler after adding a new event):
-    const onFinish = (values) => {
-        // ... process form values into a new event object ...
-        const newEvent = {
-            ID: Date.now(), // Simple ID generation, consider a more robust method
-            TITLE: values.TITLE,
-            // ... map other form values ...
-            STARTDATE: values.RANGEDATE[0].toDate(), // Convert dayjs to Date if using Antd pickers
-            ENDDATE: values.RANGEDATE[1].toDate(),
-            ALLDAY: values.ALLDAY,
-            REPEATSETTINGS: {
-                 type: values.TYPE,
-                 interval: values.INTERVAL,
-                 weeklyDays: values.weeklyDays, // Assuming you added a name="weeklyDays" Form.Item
-                 // ... map other repeat settings ...
-                 endType: values.ENDTYPE,
-                 endAfterOccurrences: values.ENDAFTEROCCURRENCES,
-                 endOnDate: values.ENDONDATE ? values.ENDONDATE.toDate() : null, // Convert dayjs to Date
-            },
-            STARS: 0,
-            DONE: false,
-        };
-
-        // Update the state with the new event
-        const updatedEvents = [...events, newEvent];
-        setEvents(updatedEvents);
-
-        // 3. Save the updated array back to localStorage
-        saveEventsToLocalStorage(updatedEvents);
-
-        // ... reset form fields ...
-        form.resetFields();
-        setRepeat('NONE');
-        setRepeatEnd('NEVER');
-        setAllDay(false);
-        setSelectedDays([]); // Reset state for WeekCheckBoxesFormPart
-
-        // Optional: Show success message
-    };
-
-    // ... rest of your component rendering ...
+    console.log('Event ratings successfully saved to local storage.'); // Optional log
+  } catch (error) {
+    // Handle potential errors (e.g., storage full, user disabled cookies)
+    console.error('Error saving event ratings to local storage:', error);
+    // You might want to show a user-facing error message here
+  }
 };
-*/
+
+/**
+ * Loads the list of event ratings from local storage.
+ * @returns {Array<Object>} The array of rating objects, or an empty array if none are found or loading fails.
+ */
+export const loadRatingsFromLocalStorage = () => {
+  try {
+    const ratingsJsonString = localStorage.getItem(EVENT_RATINGS_STORAGE_KEY);
+    if (ratingsJsonString === null) {
+      console.log('No event ratings found in local storage, starting with an empty list.');
+      return [];
+    }
+
+    const ratingsList = JSON.parse(ratingsJsonString);
+
+    if (!Array.isArray(ratingsList)) {
+         console.error('Data loaded from local storage is not an array.', ratingsList);
+         return [];
+    }
+
+    // --- Add this step to convert date strings back to Date objects ---
+    const ratingsListWithDates = ratingsList.map(rating => {
+        // Check if the rating object exists and has a DATE property that is a string.
+        // The type check is important to avoid errors if the data format is unexpected.
+        if (rating && typeof rating.DATE === 'string') {
+            // Return a new object with the DATE string converted to a Date object.
+            // Using the spread operator {...rating} ensures other properties are copied.
+            return {
+                ...rating,
+                DATE: new Date(rating.DATE) // Convert the ISO string back to a Date object
+            };
+        }
+        // If the DATE property is not a string (e.g., it was null, undefined, or already a Date),
+        // or the object structure is unexpected, return the object as is.
+        return rating;
+    });
+    // --- End of date conversion step ---
+
+
+    console.log('Event ratings successfully loaded from local storage.');
+    // Return the array where DATE strings have been converted to Date objects.
+    return ratingsListWithDates;
+
+  } catch (error) {
+    console.error('Error loading or parsing event ratings from local storage:', error);
+    // Return empty array if loading or parsing fails
+    return [];
+  }
+};
+
+
 

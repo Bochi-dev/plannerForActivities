@@ -5,12 +5,17 @@ import { PlannerTableSlots } from "../../components"
 
 
 
-const rowRender = (func, weekDates, eventData, operations, showModal, source) => {
+const rowRender = (func, weekDates, eventData, operations, showModal) => {
+  const [ratingsOfEvents, setRatingsOfEvents] = operations.ratingsOperations
   for (const dayName in weekDates) {
+
       // Ensure we only process properties directly on the object
       if (Object.hasOwnProperty.call(weekDates, dayName)) {
         const dayDate = weekDates[dayName];
-        eventData[dayName] =  func(dayDate) ? <PlannerTableSlots source={source} operations={operations} date={dayDate} star={null} showModal={showModal}/> : "NO";
+        const rating = ratingsOfEvents.find(el => (isSameDay(dayDate, el.DATE) && el.EVENTID === eventData.id) )
+        
+        
+        eventData[dayName] =  func(dayDate) ? <PlannerTableSlots source={eventData} operations={operations} date={dayDate} rating={rating} showModal={showModal}/> : "NO";
       }
   }
 }
@@ -22,7 +27,6 @@ export const PlannerTable = ({operations, sunday, saturday, showModal, weekDates
   
 
   const [events, setEvents] = operations.eventsOperations
-  
   
     //  CODE FROM GEMINI TODO 
   
@@ -44,7 +48,7 @@ export const PlannerTable = ({operations, sunday, saturday, showModal, weekDates
       const originalEnd = new Date(el["ENDDATE"] || el["STARTDATE"]); // Use STARTDATE if ENDDATE is missing
 
       const eventData = {
-          name: <a onClick={() => {showModal(2, {id: el.ID})}} >{el.TITLE}</a>,
+          name: <a onClick={() => {showModal(2, {eventId: el.ID})}} >{el.TITLE}</a>,
           // Include other relevant properties from the original event
           id: el["ID"],
           allDay: el["ALLDAY"],
@@ -150,7 +154,7 @@ export const PlannerTable = ({operations, sunday, saturday, showModal, weekDates
 
       // Call rowRender, passing the correctly defined predicate function
       // Assuming rowRender modifies eventData or prepares data for rendering based on the predicate
-      rowRender(isOccurrenceOnDay, weekDates, eventData, operations, showModal, eventData, eventData);
+      rowRender(isOccurrenceOnDay, weekDates, eventData, operations, showModal, eventData);
 
       // Return the event data object, potentially modified by rowRender
       return eventData;

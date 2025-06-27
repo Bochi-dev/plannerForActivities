@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Badge, Modal, Button, Calendar } from 'antd';
-import { PlannerForm, PlannerTable, TableSlotsForm, PlannerCard, PlannerEditForm } from "../../components"
+import { useState, useEffect } from 'react';
+import { Badge, Modal, Button, Calendar, Flex, Switch } from 'antd';
+import { PlannerForm, PlannerTable, TableSlotsForm, PlannerCard, PlannerEditForm, TableSlotsFormEdit } from "../../components"
 import { addToDate, saveEventsToLocalStorage } from "../../tools"
 const monthDictionary = {
   "0": "January",
@@ -17,43 +17,93 @@ const monthDictionary = {
   "11": "December"
 };
 
+const getStartOfWeek = (date) => {
+  const d = new Date(date); // Create a copy to avoid mutating the original date
+  const dayOfWeek = d.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+  const diff = dayOfWeek; // Number of days to subtract to get to Sunday
+  d.setDate(d.getDate() - diff);
+  d.setHours(0, 0, 0, 0); // Set time to midnight for consistent date comparisons
+  return d;
+};
+
 
 export const Planner = ({operations}) => {
-  
-  const today = new Date()
-  const month = today.getMonth()
-  const day = today.getDay()
-  const diff = today.getDate() - (day + 1) + (day === 0 ? -6 : 1)
-  const sunday = new Date(today.setDate(diff))
+  const [displayedWeekStart, setDisplayedWeekStart] = useState(() => {
+    // Initialize state with the start of the *current* week when the component mounts
+    return getStartOfWeek(new Date());
+  });
 
-  const saturday = new Date(sunday)
-  saturday.setDate(sunday.getDate() + 6)
+  
+  
+  // Function to navigate to the previous week
+  const goToPreviousWeek = () => {
+    // Use the functional update form of setDisplayedWeekStart
+    // to ensure you are calculating based on the absolute latest state
+    setDisplayedWeekStart(prevWeekStart => {
+      const newWeekStart = new Date(prevWeekStart); // Create a copy of the current week's start date
+      newWeekStart.setDate(prevWeekStart.getDate() - 7); // Subtract 7 days to get the previous week's start
+      // newWeekStart's time will automatically be midnight because prevWeekStart was set to midnight
+      return newWeekStart; // Update the state with the new date
+    });
+  };
+
+  // Function to navigate to the next week (optional, for completeness)
+  const goToNextWeek = () => {
+     setDisplayedWeekStart(prevWeekStart => {
+       const newWeekStart = new Date(prevWeekStart); // Create a copy
+       newWeekStart.setDate(prevWeekStart.getDate() + 7); // Add 7 days to get the next week's start
+       return newWeekStart;
+     });
+   };
+  
+  
+//  const today = new Date()
+//  const [today, setToday] = useState(new Date())
+//  console.log(today)
+  const month = displayedWeekStart.getMonth()
+//  const day = today.getDay()
+//  const diff = today.getDate() - (day + 1) + (day === 0 ? -6 : 1)
+//  const sunday = new Date(today.setDate(diff))
+
+  const saturday = new Date(displayedWeekStart)
+  saturday.setDate(displayedWeekStart.getDate() + 6)
   
   const weekDates = {
-    Sun: sunday,
-    Mon: addToDate(sunday, 1),
-    Tue: addToDate(sunday, 2),
-    Wed: addToDate(sunday, 3),
-    Thu: addToDate(sunday, 4),
-    Fri: addToDate(sunday, 5),
+    Sun: displayedWeekStart,
+    Mon: addToDate(displayedWeekStart, 1),
+    Tue: addToDate(displayedWeekStart, 2),
+    Wed: addToDate(displayedWeekStart, 3),
+    Thu: addToDate(displayedWeekStart, 4),
+    Fri: addToDate(displayedWeekStart, 5),
     // If 'saturday' is guaranteed to be exactly 6 days after 'sunday', you could
     // calculate it here: saturday: addToDate(sunday, 6), but using the potentially
     // pre-defined 'saturday' variable matches the original logic more closely.
     Sat: saturday
   };
   
-  const [editId, setEditId] = useState(null)
+  const [eventId, setEventId] = useState(null)
+  const [ratingId, setRatingId] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(null)
+  
+  const [view, setView] = useState(true) 
   const [formPage, setFormPage] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false); 
+  
+  
   const [events, setEvents] = operations.eventsOperations
   
   const showModal = (num, props) => {
     setFormPage(num)
-    console.log(props)
     if (typeof props !== "undefined"){
-        if (typeof props["id"] !== "undefined"){
-            setEditId(props["id"])
-        } 
+        if (typeof props["eventId"] !== "undefined"){
+            setEventId(props["eventId"])
+        }
+        if (typeof props["date"] !== "undefined"){
+            setSelectedDate(props["date"])
+        }
+        if (typeof props["ratingId"] !== "undefined"){
+            setRatingId(props["ratingId"])
+        }    
     }
     setIsModalOpen(true);
   };
@@ -114,23 +164,58 @@ export const Planner = ({operations}) => {
       // to setEvents (though the latter is less common). For simple saving, calling
       // saveEventsToLocalStorage inside the setter as shown is a common and effective pattern.
   };
+  
+  const deleteEvent = (event) => {
+    setEvents(prev => prev.filter(el.ID !== event.ID))
+  }
 
   
   
   return (<>
     <Button type="primary" onClick={() => { showModal(0) }}>Add Event</Button>
-    <h1>{monthDictionary[month]}</h1>
-    <PlannerTable operations={operations} sunday={sunday} saturday={saturday} showModal={showModal} weekDates={weekDates}/>
-    <PlannerCard operations={operations} sunday={sunday} saturday={saturday} showModal={showModal} />
+    <Switch onChange={value => {
+        setView(value)
+    }}/>
+    
+    <Flex justify={"space-between"} align={"center"}>
+        <Button icon={"<"} onClick={goToPreviousWeek}/>
+        <h1>{monthDictionary[month]}</h1>
+        <Button icon={">"} onClick={goToNextWeek}/>
+    </Flex>
+    
+    {( !view && <>
+        <PlannerTable operations={operations} sunday={displayedWeekStart} saturday={saturday} showModal={showModal} weekDates={weekDates}/>
+
+    </>
+    )}
+    
+    {( view && <>
+        <PlannerCard operations={operations} sunday={displayedWeekStart} saturday={saturday} showModal={showModal} weekDates={weekDates}/>
+    
+    </> )}
     
     <Modal title="Add Event" open={isModalOpen} footer={[]} onCancel={handleCancel} onOk={handleOk}>
       {(formPage === 0 ) ? <PlannerForm operations={operations} handleOk={handleOk}/> : <></>}
-      {(formPage === 1 ) ? <TableSlotsForm/> : <></>}
+      {(formPage === 1 ) ? <TableSlotsForm 
+        operations={operations} 
+        eventId={eventId} 
+        selectedDate={selectedDate}
+        handleOk={handleOk}
+      /> : <></>}
       {(formPage === 2 ) ? <PlannerEditForm 
         operations={operations} 
-        editId={editId} 
+        editId={eventId} 
         onSave={saveEditedEvent}
-        onCancel
+        onDelete={deleteEvent}
+        onCancel={null}
+        
+      /> : <></>}
+      {(formPage === 3 ) ? <TableSlotsFormEdit 
+        operations={operations} 
+        eventId={eventId} 
+        selectedDate={selectedDate}
+        ratingId={ratingId}
+        handleOk={handleOk}
       /> : <></>}
       
     </Modal>

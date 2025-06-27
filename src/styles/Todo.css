@@ -1,0 +1,141 @@
+/* src/styles.css (or wherever you want to put your utility classes) */
+
+/* --- Margin Top Classes --- */
+.mt-sm {
+  margin-top: 8px; /* Small margin-top */
+}
+
+.mt-md {
+  margin-top: 16px; /* Medium margin-top */
+}
+
+.mt-lg {
+  margin-top: 24px; /* Large margin-top */
+}
+
+.mt-xl {
+  margin-top: 32px; /* Extra large margin-top */
+}
+
+
+/* --- Margin Bottom Classes --- */
+.mb-sm {
+  margin-bottom: 8px; /* Small margin-bottom */
+}
+
+.mb-md {
+  margin-bottom: 16px; /* Medium margin-bottom */
+}
+
+.mb-lg {
+  margin-bottom: 24px; /* Large margin-bottom */
+}
+
+.mb-xl {
+  margin-bottom: 32px; /* Extra large margin-bottom */
+}
+
+
+/* --- Margin Left Classes --- */
+.ml-sm {
+  margin-left: 8px; /* Small margin-left */
+}
+
+.ml-md {
+  margin-left: 16px; /* Medium margin-left */
+}
+
+.ml-lg {
+  margin-left: 24px; /* Large margin-left */
+}
+
+.ml-xl {
+  margin-left: 32px; /* Extra large margin-left */
+}
+
+
+/* --- Margin Right Classes --- */
+.mr-sm {
+  margin-right: 8px; /* Small margin-right */
+}
+
+.mr-md {
+  margin-right: 16px; /* Medium margin-right */
+}
+
+.mr-lg {
+  margin-right: 24px; /* Large margin-right */
+}
+
+.mr-xl {
+  margin-right: 32px; /* Extra large margin-right */
+}
+
+
+/* --- Margin on all sides --- */
+.m-sm {
+  margin: 8px;
+}
+.m-md {
+  margin: 16px;
+}
+.m-lg {
+  margin: 24px;
+}
+
+/* --- Margin horizontal (left and right) --- */
+.mx-sm {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.mx-md {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
+/* --- Margin vertical (top and bottom) --- */
+.my-sm {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+.my-md {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+/* src/styles.css (or your preferred CSS utility file) */
+
+/* --- Height Class --- */
+.h-full {
+  height: 100%;
+}
+
+
+/* --- Font Weight Class --- */
+.font-bold {
+  font-weight: bold;
+}
+
+
+/* --- Background primary Color Class --- */
+.bg-primary-blue {
+  background-color: #6279B8;
+}
+
+/* --- Background secondary Color Class --- */
+.bg-app-blue {
+  background-color: #8EA4D2;
+}
+
+/* --- Border Reset Class --- */
+.border-0 {
+  border: 0;
+}
+
+/* You can combine these with previous margin classes or other styles */
+
+/* Example of combining with margin */
+.bg-app-blue-mb-md {
+  background-color: #8EA4D2;
+  margin-bottom: 16px;
+}

@@ -98,15 +98,34 @@ export const PlannerFormHtml = ({form, initialValues, onFinish, onFinishFailed, 
 
                 {/* Weekly Day Selection (conditional) */}
                 {(repeat === "WEEKLY") && (
-                    <Form.Item label="Days of Week">
-                        {/* Pass selectedDays and setSelectedDays props to your custom component */}
+                   <Form.Item
+                      name="WEEKLYDAYS" // This name should match the key in your form's 'values' object
+                      label="Repeat On Days" // Label for the weekday selection
+                      // Conditionally apply validation rules based on the 'repeat' field's value
+                      rules={[
+                          // This is a custom validator function
+                          // It receives rule details, the value of THIS field (WEEKLYDAYS array),
+                          // and a callback function (or expects a Promise to resolve/reject)
+                          {
+                            validator(_, value) { // value here is the array of selected days (e.g., [1, 3])
+                                // Check if repeat type is WEEKLY AND the selected days array is empty or undefined
+                                if (repeat === 'WEEKLY' && selectedDays.length === 0) {
+                                    // If validation fails, reject the promise with an error message
+                                    return Promise.reject(new Error('Please select at least one day for weekly repeat'));
+                                }
+
+                                // If validation passes (either not weekly repeat, or weekly and days are selected),
+                                // resolve the promise
+                                return Promise.resolve();
+                            },
+                          },
+                      ]}
+                      // Optional: Conditionally hide/show the entire Form.Item based on repeat === 'WEEKLY'
+                      // You might already be doing this, which is good UI practice.
+                      style={{ display: repeat === 'WEEKLY' ? 'block' : 'none' }}
+                  >
                         <WeekCheckBoxesFormPart selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
-                        {/* Alternatively, if WeekCheckBoxesFormPart manages its own state and uses a callback: */}
-                        {/* <WeekCheckBoxesFormPart onDaysChange={setSelectedDays} /> */}
-                         {/* If you need the selected days to be part of the *form* values submitted: */}
-                         {/* Add a 'name' prop here: <Form.Item name="weeklyDays" label="Days of Week"> */}
-                         {/* And update WeekCheckBoxesFormPart to work as a custom form control */}
-                         {/* (using value/onChange props internally, not its own useState) */}
+                        
                     </Form.Item>
                  )}
 
@@ -127,9 +146,18 @@ export const PlannerFormHtml = ({form, initialValues, onFinish, onFinishFailed, 
 
                 {/* End Date Picker (conditional based on repeatEnd state) */}
                 {(repeatEnd === "ONDATE") && (
-                     <Form.Item name="ENDONDATE" label="End Date"> {/* Use consistent name */}
-                        <DatePicker format="YYYY-MM-DD" showTime /> {/* Include showTime if needed */}
-                     </Form.Item>
+                  <Form.Item
+                    name="ENDONDATE"
+                    label="End Date"
+                    // Make the rules array conditional based on repeatEnd
+                    rules={repeatEnd === "ONDATE" ? [{ required: true, message: 'put on a date' }] : []}
+                    // Keep the conditional rendering as you have it
+                  >
+                    {/* Keep the conditional rendering around the Form.Item */}
+                    {(repeatEnd === "ONDATE") && (
+                        <DatePicker format="YYYY-MM-DD" style={{ width: '100%' }} />
+                    )}
+                  </Form.Item>
                  )}
 
                 {/* End After Occurrences Input (conditional based on repeatEnd state) */}

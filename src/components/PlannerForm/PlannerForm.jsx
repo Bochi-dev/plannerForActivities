@@ -27,184 +27,98 @@ export const PlannerForm = ({operations, handleOk, stringDate}) => {
   
   
   
+  // Assuming repeat, repeatEnd, selectedDays, allDay,
+  // transformToDateFromAntd, setEvents, saveEventsToLocalStorage,
+  // console.log, handleOk, form, setRepeat, setRepeatEnd,
+  // setAllDay, setSelectedDays are defined in the scope.
+
   const onFinish = values => {
-    
-    const title = values.TITLE
-    const dsc = values.DSC
-    const dates = values.RANGEDATE
-    const repeatSettings = {
-        TYPE: repeat,
-        
-        }
-        
-    if (repeat !== "NONE") {
-        const interval = values.INTERVAL
-        repeatSettings["INTERVAL"] = interval
-        repeatSettings["ENDTYPE"] = repeatEnd
-        
-        if (repeat === "WEEKLY") {
-          const weeklyDays = values.WEEKLYDAYS
-          repeatSettings["WEEKLYDAYS"] = selectedDays
-        }
-    }
-    
-    if (repeatEnd !== "NEVER"){
-      if (repeatEnd === "AFTER" || repeatEnd === "ONDATE"){
-        const endOnDate = values.ENDONDATE
-        repeatSettings["ENDONDATE"] = transformToDateFromAntd(endOnDate)
-      } else {
-        const endAfterOccurrences = values.ENDAFTEROCCURRENCES
-        repeatSettings["ENDAFTEROCCURRENCES"] = endAfterOccurrences
-      }
-    }
-    
-    
-    
-    
-    
-    
-//    const improvedRepeatSettings = {
-        /**
-         * DETERMINES THE MAIN FREQUENCY OF THE REPEAT.
-         * 'NONE': NO REPETITION.
-         * 'DAILY': REPEATS EVERY `INTERVAL` DAYS.
-         * 'WEEKLY': REPEATS EVERY `INTERVAL` WEEKS ON SPECIFIC DAYSOFWEEK.
-         * 'MONTHLY': REPEATS EVERY `INTERVAL` MONTHS BASED ON MONTHLYREPEATPATTERN.
-         * 'YEARLY': REPEATS EVERY `INTERVAL` YEARS ON A SPECIFIC DATE.
-         */
-        // TODO TYPE: repeat, // DEFAULT VALUE, CAN BE 'NONE', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'
+      // 1. Use object destructuring for cleaner value extraction
+      const {
+          TITLE: title,
+          DSC: dsc,
+          RANGEDATE: dates,
+          INTERVAL: interval, // Extract these values early
+          WEEKLYDAYS: valuesWeeklyDays, // Extract even if not used directly later
+          ENDONDATE: endOnDate,
+          ENDAFTEROCCURRENCES: endAfterOccurrences,
+          // Destructure other relevant fields if any...
+      } = values;
 
-        /**
-         * THE NUMBER OF FREQUENCY UNITS BETWEEN REPETITIONS.
-         * E.G., IF TYPE IS 'WEEKLY' AND INTERVAL IS 2, IT REPEATS EVERY 2 WEEKS.
-         * DEFAULTS TO 1 FOR SIMPLE "EVERY DAY", "EVERY WEEK", ETC.
-         */
-        // TODO INTERVAL: 1, // NUMBER, MUST BE 1 OR GREATER
+      // 2. Build repeatSettings using a more declarative approach
+      const repeatSettings = {
+          TYPE: repeat, // Always include the repeat type
+          // Conditionally add properties based on repeat and repeatEnd values
+          ...(repeat !== "NONE" && {
+              INTERVAL: interval, // Add interval if repeat is not NONE
+              ENDTYPE: repeatEnd, // Add end type if repeat is not NONE
+          }),
+          ...(repeat === "WEEKLY" && {
+              // Use the external selectedDays state as per original logic,
+              // ignoring values.WEEKLYDAYS extracted from the form if selectedDays is the source of truth.
+              // If values.WEEKLYDAYS is the source of truth, use WEEKLYDAYS: valuesWeeklyDays
+              WEEKLYDAYS: selectedDays,
+          }),
+          ...(repeatEnd === "AFTER" && {
+              ENDAFTEROCCURRENCES: endAfterOccurrences, // Add occurrences if end type is AFTER
+          }),
+          ...(repeatEnd === "ONDATE" && {
+              ENDONDATE: transformToDateFromAntd(endOnDate), // Transform and add end date if end type is ONDATE
+          }),
+           // Add logic for MONTHLY and YEARLY if needed based on your commented structure
+           /*
+           ...(repeat === "MONTHLY" && {
+              MONTHLYREPEATPATTERN: values.MONTHLYREPEATPATTERN, // Assuming you get this from values
+              ...(values.MONTHLYREPEATPATTERN === 'DAYOFMONTH' && {
+                   MONTHLYDAY: values.MONTHLYDAY, // Assuming you get this from values
+              }),
+              ...(values.MONTHLYREPEATPATTERN === 'DAYOFWEEK' && {
+                   MONTHLYWEEK: values.MONTHLYWEEK, // Assuming you get this from values
+                   MONTHLYWEEKDAY: values.MONTHLYWEEKDAY, // Assuming you get this from values
+              }),
+           }),
+           // ... similar logic for YEARLY
+           */
+      };
 
-        // --- DETAILS FOR SPECIFIC REPEAT TYPES ---
-        // THESE FIELDS ARE ONLY RELEVANT DEPENDING ON THE 'TYPE' FIELD ABOVE.
+      // 3. Create the new event object - This part is already reasonably clear
+      const newEvent = {
+          // Consider a more robust ID generation method like uuid
+          ID: Math.floor(Math.random() * 500), // Basic ID generation - consider alternatives
+          TITLE: title,
+          DSC: dsc,
+          // Handle date transformation based on allDay
+          STARTDATE: transformToDateFromAntd(allDay ? dates : dates[0]),
+          ENDDATE: transformToDateFromAntd(allDay ? dates : dates[1]),
+          ALLDAY: allDay,
+          STARS: 0, // Assuming default stars
+          DONE: false, // Assuming default done status
+          REPEATSETTINGS: repeatSettings, // Include the constructed repeat settings
+      };
 
-        /**
-         * ARRAY OF NUMBERS REPRESENTING THE DAYS OF THE WEEK FOR 'WEEKLY' REPEATS.
-         * 0 = SUNDAY, 1 = MONDAY, ..., 6 = SATURDAY.
-         * E.G., [1, 3, 5] FOR MONDAY, WEDNESDAY, FRIDAY.
-         * ONLY RELEVANT IF TYPE IS 'WEEKLY'.
-         */
-        // TODO WEEKLYDAYS: selectedDays, // ARRAY OF NUMBERS 0-6
+      // 4. Update state, save, and perform other actions
+      setEvents(prev => {
+          const newEventsList = [...prev, newEvent];
+          saveEventsToLocalStorage(newEventsList); // Save the *new* list
+          return newEventsList; // Return the new list to update state
+      });
 
-        /**
-         * DEFINES HOW THE REPEAT DATE IS DETERMINED WITHIN THE MONTH FOR 'MONTHLY' REPEATS.
-         * 'DAYOFMONTH': REPEATS ON THE SAME DAY NUMBER OF THE MONTH (E.G., THE 15TH).
-         * 'DAYOFWEEK': REPEATS ON THE NTH OCCURRENCE OF A SPECIFIC WEEKDAY (E.G., THE 3RD TUESDAY).
-         * ONLY RELEVANT IF TYPE IS 'MONTHLY'.
-         */
-        // TODO MONTHLYREPEATPATTERN: 'DAYOFMONTH', // CAN BE 'DAYOFMONTH' OR 'DAYOFWEEK'
-
-        /**
-         * THE DAY NUMBER OF THE MONTH (1-31) FOR 'MONTHLY' REPEATS WHEN MONTHLYREPEATPATTERN IS 'DAYOFMONTH'.
-         * E.G., 15 FOR REPEATING ON THE 15TH OF THE MONTH.
-         * ONLY RELEVANT IF TYPE IS 'MONTHLY' AND MONTHLYREPEATPATTERN IS 'DAYOFMONTH'.
-         */
-        // TODO MONTHLYDAY: 1, // NUMBER, 1-31
-
-        /**
-         * THE WEEK NUMBER WITHIN THE MONTH FOR 'MONTHLY' REPEATS WHEN MONTHLYREPEATPATTERN IS 'DAYOFWEEK'.
-         * 0 = FIRST, 1 = SECOND, 2 = THIRD, 3 = FOURTH, 4 = LAST.
-         * ONLY RELEVANT IF TYPE IS 'MONTHLY' AND MONTHLYREPEATPATTERN IS 'DAYOFWEEK'.
-         */
-        // TODO MONTHLYWEEK: 0, // NUMBER, 0-4
-
-        /**
-         * THE DAY OF THE WEEK (0-6) FOR 'MONTHLY' REPEATS WHEN MONTHLYREPEATPATTERN IS 'DAYOFWEEK'.
-         * 0 = SUNDAY, 1 = MONDAY, ..., 6 = SATURDAY.
-         * ONLY RELEVANT IF TYPE IS 'MONTHLY' AND MONTHLYREPEATPATTERN IS 'DAYOFWEEK'.
-         */
-        // TODO MONTHLYWEEKDAY: 0, // NUMBER, 0-6
-
-         /**
-         * THE MONTH (0-11) FOR 'YEARLY' REPEATS.
-         * 0 = JANUARY, 1 = FEBRUARY, ..., 11 = DECEMBER.
-         * ONLY RELEVANT IF TYPE IS 'YEARLY'.
-         */
-        // TODO YEARLYMONTH: 0, // NUMBER, 0-11
-
-         /**
-         * THE DAY OF THE MONTH (1-31) FOR 'YEARLY' REPEATS.
-         * E.G., 25 FOR REPEATING ON THE 25TH.
-         * ONLY RELEVANT IF TYPE IS 'YEARLY'.
-         */
-        // TODO YEARLYDAY: 1, // NUMBER, 1-31
+      // Note: console.log(events) here will likely show the state *before* the update
+      // because setEvents is asynchronous. To see the latest state after update,
+      // use a useEffect hook or console.log inside the setEvents updater.
+      console.log("Attempting to set events. Check state in subsequent renders or effects.");
 
 
-        // --- END CONDITION ---
+      handleOk(); // Call handleOk
 
-        /**
-         * DETERMINES WHEN THE REPETITION ENDS.
-         * 'NEVER': REPEATS INDEFINITELY.
-         * 'AFTER': REPEATS FOR A SPECIFIC NUMBER OF OCCURRENCES.
-         * 'ONDATE': REPEATS UNTIL A SPECIFIC DATE (INCLUSIVE).
-         */
-        // TODO ENDTYPE: 'NEVER', // DEFAULT VALUE, CAN BE 'NEVER', 'AFTER', 'ONDATE'
+      // --- Clear the Form Inputs and related state ---
+      form.resetFields(); // Reset form fields
 
-        /**
-         * THE NUMBER OF OCCURRENCES AFTER WHICH THE REPEAT ENDS.
-         * ONLY RELEVANT IF ENDTYPE IS 'AFTER'.
-         * MUST BE 1 OR GREATER.
-         */
-        // TODO ENDAFTEROCCURRENCES: 1, // NUMBER
-
-        /**
-         * THE DATE ON WHICH THE REPEAT ENDS (INCLUSIVE).
-         * THE TIME PART SHOULD TYPICALLY BE IGNORED OR SET TO END-OF-DAY WHEN CHECKING THIS CONDITION.
-         * SHOULD BE A STANDARD JAVASCRIPT DATE OBJECT.
-         * ONLY RELEVANT IF ENDTYPE IS 'ONDATE'.
-         */
-        // TODO ENDONDATE: NULL, // DATE OBJECT OR NULL
-//    };
-    
-    setEvents(prev => {
-    
-    
-        const newEvents = [
-          ... prev, 
-          {
-            ID: Math.floor(Math.random()*500),
-            TITLE: title,
-            DSC: dsc,
-            STARTDATE: (allDay) ? transformToDateFromAntd(dates) : transformToDateFromAntd(dates[0]),
-            ENDDATE: (allDay) ? transformToDateFromAntd(dates) : transformToDateFromAntd(dates[1]),
-            ALLDAY: allDay,
-            STARS: 0,
-      //        note: add remember me notifications
-            DONE: false,
-            REPEATSETTINGS: repeatSettings 
-          }
-        ]
-        saveEventsToLocalStorage(newEvents)
-        return newEvents
-    
-    })
-    console.log(events)
-    handleOk()
-    
-    
-    // --- Clear the Form Inputs AFTER Submission ---
-    // 2. Call resetFields() on the form instance
-    form.resetFields();
-
-    // 3. Manually reset state variables that control conditional rendering
-    // and custom components not automatically handled by resetFields()
-    setRepeat('NONE'); // Reset repeat type select state
-    setRepeatEnd('NEVER'); // Reset repeat end select state
-    setAllDay(false); // Reset all day checkbox state
-
-    // 4. Manually reset the state of your custom WeekCheckBoxesFormPart
-    setSelectedDays([]); // Reset the array of selected days
-    
-    
-    
-    
-    
+      // Manually reset state variables controlling form parts not handled by resetFields
+      setRepeat('NONE');
+      setRepeatEnd('NEVER');
+      setAllDay(false);
+      setSelectedDays([]);
   };
   const onFinishFailed = errorInfo => {
     console.log('Failed:', errorInfo);
@@ -216,16 +130,16 @@ export const PlannerForm = ({operations, handleOk, stringDate}) => {
   return (
     <PlannerFormHtml 
         form={form}
-        onFinish
-        onFinishFailed 
-        repeat 
-        setRepeat 
-        repeatEnd
-        setRepeatEnd 
-        allDay 
-        setAllDay 
-        selectedDays 
-        setSelectedDays 
+        onFinish={onFinish}
+        onFinishFailed={onFinishFailed} 
+        repeat={repeat}
+        setRepeat={setRepeat}
+        repeatEnd={repeatEnd}
+        setRepeatEnd={setRepeatEnd} 
+        allDay={allDay} 
+        setAllDay={setAllDay} 
+        selectedDays={selectedDays} 
+        setSelectedDays={setSelectedDays} 
     
     />
     );
