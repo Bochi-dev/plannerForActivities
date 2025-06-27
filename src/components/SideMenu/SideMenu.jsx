@@ -15,6 +15,10 @@ const items = [
     key: 'habits',
     label: 'Habits',
   },
+  {
+    key: 'tags',
+    label: 'Tags',
+  },
 ];
 export const SideMenu = ({ isInline = false }) => {
   const navigate = useNavigate()
