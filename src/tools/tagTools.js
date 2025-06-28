@@ -44,6 +44,7 @@ export const saveAllTagsToLocalStorage = (allTags) => {
 /**
  * Adds a new tag object to the central list.
  * Automatically adds new tag if name doesn't exist (case-insensitive).
+ * Sets both createdAt and lastUsedAt for new tags.
  *
  * @param {Array<Object>} currentAllTags - The current array of all tag objects.
  * @param {string} tagName - The name of the tag to add.
@@ -62,10 +63,12 @@ export const addTagObjectLocally = (currentAllTags, tagName, metadata = {}) => {
         return currentAllTags; // Return original array if tag already exists
     }
 
+    const now = new Date().toISOString();
     const newTagObject = {
         id: generateUniqueId(),
         name: tagName.trim(), // Store original casing, but check uniqueness with lowercase
-        createdAt: new Date().toISOString(),
+        createdAt: now,      // When the tag object was created
+        lastUsedAt: now,     // When it was first created/used
         ...metadata,
     };
 
@@ -119,6 +122,7 @@ export const ensureTagsExistInCentralList = (allTags, taskTagNames, setAllTags) 
             const exists = updatedAllTags.some(tag => tag.name.toLowerCase() === lowerCaseTagName);
 
             if (!exists) {
+                // Use addTagObjectLocally to ensure new tags get createdAt and lastUsedAt
                 updatedAllTags = addTagObjectLocally(updatedAllTags, tagName);
                 changed = true;
             }
@@ -131,4 +135,26 @@ export const ensureTagsExistInCentralList = (allTags, taskTagNames, setAllTags) 
     return updatedAllTags;
 };
 
+/**
+ * Updates the 'lastUsedAt' timestamp for a specific tag object in the central list.
+ * This is called when a task associated with the tag is created, edited, or updated.
+ *
+ * @param {Array<Object>} currentAllTags - The current array of all tag objects.
+ * @param {string} tagName - The name of the tag whose usage timestamp needs updating.
+ * @returns {Array<Object>} A new array of all tag objects with the updated timestamp.
+ */
+export const updateTagUsageLocally = (currentAllTags, tagName) => {
+    const lowerCaseTagName = tagName.toLowerCase().trim();
+    const now = new Date().toISOString();
+
+    return currentAllTags.map(tag => {
+        if (tag.name.toLowerCase() === lowerCaseTagName) {
+            // Only update if it's actually different to avoid unnecessary re-renders
+            if (tag.lastUsedAt !== now) {
+                return { ...tag, lastUsedAt: now };
+            }
+        }
+        return tag;
+    });
+};
 

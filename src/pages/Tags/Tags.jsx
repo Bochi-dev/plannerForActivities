@@ -79,7 +79,17 @@ export const Tags = ({
   const filteredExistingTags = useMemo(() => {
     return allUniqueTagsWithCounts.filter(tag =>
       tag.name.toLowerCase().includes(tagSearchTerm.toLowerCase())
-    );
+    ).sort((a, b) => { // NEW: Add sorting logic here
+      // Find the actual tag object from allTags to get lastUsedAt
+      const tagObjA = allTags.find(t => t.name.toLowerCase() === a.name.toLowerCase());
+      const tagObjB = allTags.find(t => t.name.toLowerCase() === b.name.toLowerCase());
+
+      // Handle cases where tag object might not be found (though it should be with ensureTagsExistInCentralList)
+      const dateA = tagObjA ? new Date(tagObjA.lastUsedAt) : new Date(0); // Use epoch if not found
+      const dateB = tagObjB ? new Date(tagObjB.lastUsedAt) : new Date(0);
+
+      return dateB.getTime() - dateA.getTime(); // Sort descending (most recent first)
+    });
   }, [allUniqueTagsWithCounts, tagSearchTerm]);
 
 

@@ -14,7 +14,8 @@ import {
   addTagObjectLocally,
   editTagObjectLocally,
   deleteTagObjectLocally,
-  ensureTagsExistInCentralList
+  ensureTagsExistInCentralList,
+  updateTagUsageLocally,
 } from "./tools"
 
 const loadedEvents = loadEventsFromLocalStorage()
@@ -44,8 +45,7 @@ export default function App() {
 //    onEditTask,
     onAddTask: originalOnAddTask, // Rename to avoid conflict with our wrapped version
     onEditTask: originalOnEditTask, // Rename to avoid conflict with our wrapped version
-
-    onUpdateTaskStatus,
+    onUpdateTaskStatus:originalOnUpdateTaskStatus,
     onDeleteTask,
     onAddSubtask,
   } = useTodoManagement();
@@ -66,11 +66,28 @@ export default function App() {
   const handleAddTask = (text, tags) => { // Renamed from originalOnAddTask
     ensureTagsExistInCentralList(allTags, tags, setAllTags);
     originalOnAddTask(text, tags);
+        // NEW: Update lastUsedAt for each tag added to the new task
+    setAllTags(prevTags => {
+      let updatedTags = [...prevTags];
+      tags.forEach(tagName => {
+        updatedTags = updateTagUsageLocally(updatedTags, tagName);
+      });
+      return updatedTags;
+    });
+
   };
 
   const handleEditTask = (id, updates) => { // Renamed from originalOnEditTask
     if (updates.tags) {
       ensureTagsExistInCentralList(allTags, updates.tags, setAllTags);
+            // NEW: Update lastUsedAt for each tag being updated/re-applied to the task
+      setAllTags(prevTags => {
+        let updatedTags = [...prevTags];
+        updates.tags.forEach(tagName => {
+          updatedTags = updateTagUsageLocally(updatedTags, tagName);
+        });
+        return updatedTags;
+      });
     }
     originalOnEditTask(id, updates);
   };
@@ -83,6 +100,23 @@ export default function App() {
   const handleEditTagObject = (tagId, updates) => {
     setAllTags(prevTags => editTagObjectLocally(prevTags, tagId, updates));
   };
+  
+    // NEW: Wrapped Task Status Update Function
+  const handleUpdateTaskStatus = (id, newStatus) => {
+    // Find the task to get its tags before updating status
+    const taskToUpdate = tasks.find(task => task.id === id);
+    if (taskToUpdate && taskToUpdate.tags && taskToUpdate.tags.length > 0) {
+      setAllTags(prevTags => {
+        let updatedTags = [...prevTags];
+        taskToUpdate.tags.forEach(tagName => {
+          updatedTags = updateTagUsageLocally(updatedTags, tagName);
+        });
+        return updatedTags;
+      });
+    }
+    originalOnUpdateTaskStatus(id, newStatus); // Call the original status update
+  };
+
 
   const handleDeleteTagObject = (tagId) => {
 //    if (window.confirm('Are you sure you want to delete this tag? This will remove it from the global list, but not from existing tasks unless you implement that logic.')) {
@@ -122,7 +156,7 @@ export default function App() {
       tasks: tasks,
       onAddTask: handleAddTask, // Use the wrapped function
       onEditTask: handleEditTask, // Use the wrapped function
-      onUpdateTaskStatus: onUpdateTaskStatus,
+      onUpdateTaskStatus: handleUpdateTaskStatus,
       onDeleteTask: onDeleteTask,
       onAddSubtask: onAddSubtask,
 //      onTagClick: handleOpenTagModal, // Pass the function to open the tag modal
