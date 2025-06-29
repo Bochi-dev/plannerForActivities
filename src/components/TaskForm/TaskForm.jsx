@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Input, Button, Form, Select, Typography } from 'antd';
-import { PlusOutlined, TagOutlined } from '@ant-design/icons';
+import { PlusOutlined, TagOutlined, StarOutlined } from '@ant-design/icons'; // Added StarOutlined for priority icon
+
+// Import priority levels and helper function from todoTools
+// Adjusted path: trying a different relative path based on common resolution patterns in environments
+import { PRIORITY_LEVELS, getPriorityDisplay } from '../../tools'; // Changed from '../../tools/todoTools'
 
 const { Option } = Select;
 
-export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask, defaultTagsForNewTask = [] }) => { // NEW PROP: defaultTagsForNewTask
+export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask, defaultTagsForNewTask = [] }) => {
   const [form] = Form.useForm();
   const [allAvailableTags, setAllAvailableTags] = useState([]); // State to manage a list of previously used tags (optional)
 
@@ -13,34 +17,29 @@ export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask, d
       form.setFieldsValue({
         taskText: editingTask.text,
         tags: editingTask.tags || [],
+        priority: editingTask.priority !== undefined ? editingTask.priority : PRIORITY_LEVELS[0].value, // Set existing priority or default
       });
     } else {
-      // If not editing, set the tags field to defaultTagsForNewTask
       form.setFieldsValue({
-        taskText: '', // Ensure taskText is clear for new task
-        tags: defaultTagsForNewTask, // NEW: Apply default tags
+        taskText: '',
+        tags: defaultTagsForNewTask,
+        priority: PRIORITY_LEVELS[0].value, // Default to lowest priority 'C' for new tasks
       });
-      // form.resetFields(); // This would clear defaultTagsForNewTask, so we use setFieldsValue instead
-      // Optionally, you might clear previously used tags if not editing
-      // setAllAvailableTags([]);
     }
   }, [editingTask, form, defaultTagsForNewTask]); // Add defaultTagsForNewTask to dependencies
 
   const handleFinish = (values) => {
-    const { taskText, tags } = values;
+    const { taskText, tags, priority } = values; // Destructure priority
 
     if (editingTask) {
-      onEditTask(editingTask.id, { text: taskText, tags: tags || [] });
+      onEditTask(editingTask.id, { text: taskText, tags: tags || [], priority: priority }); // Pass priority to onEditTask
       setEditingTask(null);
     } else {
-      onAddTask(taskText, tags || []);
+      onAddTask(taskText, tags || [], priority); // Pass priority to onAddTask
     }
-    // We now use setFieldsValue in useEffect to clear/set defaults,
-    // so a simple resetFields() here would override defaultTagsForNewTask.
-    // Instead, we can manually reset just the taskText or let the useEffect handle it.
+
     form.resetFields(['taskText']); // Only reset taskText after submission
-    // Note: The tags field will be reset by the useEffect setting it to defaultTagsForNewTask
-    // or the editingTask's tags, depending on state.
+    // Tags and Priority will be reset by the useEffect handling default/editing values.
 
     setAllAvailableTags(prevTags => {
       const newTags = tags ? tags.filter(tag => !prevTags.includes(tag)) : [];
@@ -67,11 +66,12 @@ export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask, d
         />
       </Form.Item>
 
+      {/* Tags Select */}
       <Form.Item
         name="tags"
         noStyle
         className="w-full sm:w-auto flex-grow"
-        initialValue={[]} // Still provide initialValue, but useEffect will override for new tasks
+        initialValue={[]}
       >
         <Select
           mode="tags"
@@ -81,6 +81,27 @@ export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask, d
           suffixIcon={<TagOutlined />}
           tokenSeparators={[',']}
         />
+      </Form.Item>
+
+      {/* NEW: Priority Select Box */}
+      <Form.Item
+        name="priority"
+        noStyle
+        initialValue={PRIORITY_LEVELS[0].value} // Default to 'C' (0) if not explicitly set by useEffect
+        className="w-full sm:w-auto flex-shrink-0"
+      >
+        <Select
+          placeholder="Priority"
+          style={{ width: '100%', borderRadius: '9999px' }}
+          className="ant-select-priority-input rounded-full"
+          suffixIcon={<StarOutlined />}
+        >
+          {PRIORITY_LEVELS.map(level => (
+            <Option key={level.value} value={level.value}>
+              {level.letter} - Priority {level.value}
+            </Option>
+          ))}
+        </Select>
       </Form.Item>
 
       <Button

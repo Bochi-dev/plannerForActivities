@@ -1,7 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react'; // Added useEffect
-import { TaskForm, TaskList, ClickableTag } from '../../components'; // Adjusted path and barrel import
-import { Button, Tag as AntTag, Typography } from 'antd'; // Import AntTag for raw tags, Typography for text
-import { EditOutlined, CloseOutlined } from '@ant-design/icons'; // CloseOutlined for selected tag dismissal
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+// Corrected Imports: Importing from the components barrel export
+// This assumes that your 'src/components/index.js' file correctly exports
+// TaskForm, TaskList, and ClickableTag.
+import { TaskForm, TaskList, ClickableTag } from '../../components';
+import { Button, Tag as AntTag, Typography } from 'antd';
+import { EditOutlined, CloseOutlined } from '@ant-design/icons';
 
 
 const { Text } = Typography;
@@ -20,21 +23,13 @@ export const Todo = ({
   const [editingTask, setEditingTask] = useState(null);
   const [selectedFilterTags, setSelectedFilterTags] = useState([]);
 
-  // NEW: Effect to clear selected filters when the tasks array changes (e.g., reset on app load, or major data refresh)
-  // This helps ensure the filter state aligns with the current tasks if external changes occur.
-  // Consider if this behavior is desired or if filters should persist across certain data changes.
-  // For this feature, let's keep it simple: initial load of tasks, filters start empty.
   useEffect(() => {
-    // Optionally, if you want filters to reset only when the component mounts initially,
-    // you can remove allTags from dependency array, or use a ref.
-    // For now, let's assume we want filters to persist across minor task changes
-    // but default to empty on page load, which initial useState handles.
-    // This useEffect is more about reacting to external *data* updates of allTags that might make current filters invalid.
-    // A simpler approach for the feature is just to let useState handle initial empty state.
-  }, []); // Only runs on initial mount
+    // This useEffect is currently empty, you can add logic here if needed,
+    // e.g., for specific initialization or cleanup related to Todo component mount/unmount.
+  }, []);
 
 
-  // Memoize the sorted list of all available tags by lastUsedAt
+  // Memoize the sorted list of all available tags by lastUsedAt (for the filter bar)
   const sortedAllTags = useMemo(() => {
     if (!Array.isArray(allTags)) return [];
 
@@ -61,25 +56,33 @@ export const Todo = ({
     setSelectedFilterTags([]);
   }, []);
 
-  // Task Filtering Logic (remains the same)
-  const getFilteredTasks = (status) => {
-    const statusFiltered = tasks.filter(task => task.status === status);
+  // --- Task Filtering and Sorting Logic ---
+  const getFilteredAndSortedTasks = (status) => {
+    // 1. Filter by status
+    let filtered = tasks.filter(task => task.status === status);
 
-    if (selectedFilterTags.length === 0) {
-      return statusFiltered;
-    }
-
-    return statusFiltered.filter(task => {
+    // 2. Filter by selected tags (AND logic)
+    if (selectedFilterTags.length > 0) {
+      filtered = filtered.filter(task => {
         return selectedFilterTags.every(filterTag =>
             task.tags && task.tags.map(t => t.toLowerCase()).includes(filterTag.toLowerCase())
         );
+      });
+    }
+
+    // 3. Sort by priority (descending: S (3) -> A (2) -> B (1) -> C (0))
+    // If priority is undefined, treat it as the lowest priority (0) for sorting.
+    return filtered.sort((a, b) => {
+      const priorityA = a.priority !== undefined ? a.priority : 0;
+      const priorityB = b.priority !== undefined ? b.priority : 0;
+      return priorityB - priorityA; // Descending order
     });
   };
 
-  const draftedTasks = getFilteredTasks('drafted');
-  const inProgressTasks = getFilteredTasks('in-progress');
-  const inReviewTasks = getFilteredTasks('in-review');
-  const completedTasks = getFilteredTasks('completed');
+  const draftedTasks = getFilteredAndSortedTasks('drafted');
+  const inProgressTasks = getFilteredAndSortedTasks('in-progress');
+  const inReviewTasks = getFilteredAndSortedTasks('in-review');
+  const completedTasks = getFilteredAndSortedTasks('completed');
 
 
   return (
@@ -102,7 +105,6 @@ export const Todo = ({
           onEditTask={onEditTask}
           editingTask={editingTask}
           setEditingTask={setEditingTask}
-          // NEW PROP: Pass the currently selected filter tags to TaskForm
           defaultTagsForNewTask={selectedFilterTags}
         />
       </div>
@@ -174,7 +176,7 @@ export const Todo = ({
           onAddSubtask={onAddSubtask}
           onTagClick={onTagClick}
           nextStatus="in-progress"
-          backStatus={null}
+            backStatus={null}
         />
         <TaskList
           title="In Progress"
@@ -185,7 +187,7 @@ export const Todo = ({
           onAddSubtask={onAddSubtask}
           onTagClick={onTagClick}
           nextStatus="in-review"
-          backStatus="drafted"
+            backStatus="drafted"
         />
         <TaskList
           title="In Review"
@@ -213,4 +215,3 @@ export const Todo = ({
     </div>
   );
 };
-
