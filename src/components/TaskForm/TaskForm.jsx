@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Input, Button, Form, Select, Typography } from 'antd'; // Import Select and Typography for tags
-import { PlusOutlined, TagOutlined } from '@ant-design/icons'; // Import TagOutlined icon for tag input label
+import { Input, Button, Form, Select, Typography } from 'antd';
+import { PlusOutlined, TagOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
-export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask }) => {
+export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask, defaultTagsForNewTask = [] }) => { // NEW PROP: defaultTagsForNewTask
   const [form] = Form.useForm();
   const [allAvailableTags, setAllAvailableTags] = useState([]); // State to manage a list of previously used tags (optional)
 
@@ -12,34 +12,37 @@ export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask })
     if (editingTask) {
       form.setFieldsValue({
         taskText: editingTask.text,
-        // Ensure tags are set for editing, default to empty array if undefined
         tags: editingTask.tags || [],
       });
     } else {
-      form.resetFields(); // Clear form when not editing
+      // If not editing, set the tags field to defaultTagsForNewTask
+      form.setFieldsValue({
+        taskText: '', // Ensure taskText is clear for new task
+        tags: defaultTagsForNewTask, // NEW: Apply default tags
+      });
+      // form.resetFields(); // This would clear defaultTagsForNewTask, so we use setFieldsValue instead
       // Optionally, you might clear previously used tags if not editing
       // setAllAvailableTags([]);
     }
-    // As a simple example, you might populate allAvailableTags from existing tasks
-    // This would require passing all tasks down to TaskForm, or fetching them here.
-    // For now, it will simply allow free-form input without suggestions.
-  }, [editingTask, form]);
+  }, [editingTask, form, defaultTagsForNewTask]); // Add defaultTagsForNewTask to dependencies
 
   const handleFinish = (values) => {
-    // Collect text and tags from the form
     const { taskText, tags } = values;
 
     if (editingTask) {
-      // For editing, pass an object with updated properties (text and tags)
       onEditTask(editingTask.id, { text: taskText, tags: tags || [] });
       setEditingTask(null);
     } else {
-      // For adding, pass text and tags
       onAddTask(taskText, tags || []);
     }
-    form.resetFields(); // Clear the input fields
+    // We now use setFieldsValue in useEffect to clear/set defaults,
+    // so a simple resetFields() here would override defaultTagsForNewTask.
+    // Instead, we can manually reset just the taskText or let the useEffect handle it.
+    form.resetFields(['taskText']); // Only reset taskText after submission
+    // Note: The tags field will be reset by the useEffect setting it to defaultTagsForNewTask
+    // or the editingTask's tags, depending on state.
+
     setAllAvailableTags(prevTags => {
-      // Add newly entered tags to the available tags list, avoiding duplicates
       const newTags = tags ? tags.filter(tag => !prevTags.includes(tag)) : [];
       return [...prevTags, ...newTags];
     });
@@ -66,19 +69,17 @@ export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask })
 
       <Form.Item
         name="tags"
-        noStyle // To allow custom styling via className
-        className="w-full sm:w-auto flex-grow" // Adjust width
-        initialValue={[]} // Ensure tags field is initialized as an empty array
+        noStyle
+        className="w-full sm:w-auto flex-grow"
+        initialValue={[]} // Still provide initialValue, but useEffect will override for new tasks
       >
         <Select
-          mode="tags" // Allows free-form tag input (user types, presses Enter/Space)
+          mode="tags"
           placeholder="Add tags (e.g., work, urgent)"
-          style={{ width: '100%', borderRadius: '9999px' }} // Full width and rounded
-          className="ant-select-tag-input rounded-full" // Custom class for styling
-          suffixIcon={<TagOutlined />} // Add a tag icon as suffix
-          tokenSeparators={[',']} // Allow comma as a separator for new tags
-          // You could map 'allAvailableTags' here for suggestions if you had a global list
-          // options={allAvailableTags.map(tag => ({ value: tag, label: tag }))}
+          style={{ width: '100%', borderRadius: '9999px' }}
+          className="ant-select-tag-input rounded-full"
+          suffixIcon={<TagOutlined />}
+          tokenSeparators={[',']}
         />
       </Form.Item>
 
@@ -102,6 +103,4 @@ export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask })
     </Form>
   );
 };
-
-export default TaskForm;
 

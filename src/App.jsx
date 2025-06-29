@@ -205,6 +205,9 @@ function Content({ operations }) {
   operations.taskOperations.onTagClick = (tag) => {
     navigate('/tags', { state: { selectedTag: tag } });
   };
+  
+  console.log("All Tags before content: ", operations.tagOperations.allTags)
+  
   return (
     <div style={{ padding: 15 }}>
       <Routes>
@@ -223,6 +226,7 @@ function Content({ operations }) {
             onAddSubtask={operations.taskOperations.onAddSubtask}
             onTagClick={operations.taskOperations.onTagClick} // Pass the onTagClick handler
             userId="local-user"
+            allTags={operations.tagOperations.allTags} // NEW: Pass allTags here
           />}
         />
                 {/* New Route for the Tags Page */}
@@ -241,6 +245,7 @@ function Content({ operations }) {
             onAddSubtask={operations.taskOperations.onAddSubtask}
             // onTagClick is passed to TagsPage itself, for when a tag is clicked within its left panel
             onTagClick={operations.taskOperations.onTagClick}
+
           />}
         />
       </Routes>
