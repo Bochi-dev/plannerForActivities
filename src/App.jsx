@@ -63,9 +63,10 @@ export default function App() {
 //  };
 
       // --- Wrapped Task Management Functions to Ensure Tags Exist ---
-  const handleAddTask = (text, tags) => { // Renamed from originalOnAddTask
+    const handleAddTask = (text, tags, priority) => { // FIX: Add priority parameter // Renamed from originalOnAddTask
+        console.log("App.jsx: handleAddTask received:", { text, tags, priority }); // DEBUG LOG
     ensureTagsExistInCentralList(allTags, tags, setAllTags);
-    originalOnAddTask(text, tags);
+    originalOnAddTask(text, tags, priority);
         // NEW: Update lastUsedAt for each tag added to the new task
     setAllTags(prevTags => {
       let updatedTags = [...prevTags];

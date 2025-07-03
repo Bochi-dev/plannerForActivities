@@ -63,8 +63,9 @@ export const useTodoManagement = () => {
 
   // --- Task Management Operations using todoTools.js ---
 
-  const handleAddTask = useCallback((text, tags) => {
-    setTasks(prevTasks => addTaskLocally(prevTasks, text, tags));
+  const handleAddTask = useCallback((text, tags, priority) => {
+    console.log("useTodoManagement.js: onAddTask received:", { text, tags, priority }); // DEBUG LOG
+    setTasks(prevTasks => addTaskLocally(prevTasks, text, tags, priority)); // Pass priority to addTaskLocally
   }, []);
 
   const handleEditTask = useCallback((id, updates) => {
