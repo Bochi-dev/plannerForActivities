@@ -35,6 +35,15 @@ export const getPriorityDisplay = (priorityValue) => {
     return PRIORITY_LEVELS.find(level => level.value === priorityValue) || PRIORITY_LEVELS[0];
 };
 
+// Define task status values
+export const TASK_STATUS = {
+    NEW_ON_HOLD: 'new-on-hold',
+    NEXT_UP: 'next-up',
+    IN_PROGRESS: 'in-progress',
+    IN_REVIEW: 'in-review',
+    COMPLETED: 'completed',
+};
+
 /**
  * Adds a new task to the list.
  * @param {Array<Object>} currentTasks - The current array of tasks.
@@ -48,7 +57,7 @@ export const addTaskLocally = (currentTasks, text, tags = [], priority = 0, desc
     const newTask = {
         id: generateUniqueId(),
         text,
-        status: 'drafted', // New tasks start as 'drafted'
+        status: TASK_STATUS.NEW_ON_HOLD, // New tasks start as 'new-on-hold' - **UPDATED STATUS**
         subtasks: [],      // Initialize with empty subtasks
         tags: tags,        // Add tags property
         priority: priority, // Add priority property, defaulting to 0
@@ -93,9 +102,9 @@ export const updateTaskStatusLocally = (currentTasks, taskId, newStatus) => {
         task.id === taskId
             ? {
                 ...task,
-                status: newStatus,
+                status: newStatus, // **UPDATED STATUS**
                 updatedAt: new Date().toISOString(),
-                ...(newStatus === 'completed' && { completedAt: new Date().toISOString() }),
+                ...(newStatus === TASK_STATUS.COMPLETED && { completedAt: new Date().toISOString() }), // **UPDATED STATUS**
             }
             : task
     );
@@ -156,4 +165,3 @@ export const toggleSubtaskCompleteLocally = (currentTasks, parentTaskId, subtask
         return task;
     });
 };
-

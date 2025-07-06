@@ -88,6 +88,7 @@ export const TaskItem = ({
               icon={<ArrowRightOutlined />}
               aria-label={`Move to ${nextStatus.replace('-', ' ')}`}
             >
+              {nextStatus === 'next-up' && 'Next up'}
               {nextStatus === 'in-progress' && 'Progress'}
               {nextStatus === 'in-review' && 'Review'}
               {nextStatus === 'completed' && 'Complete'}

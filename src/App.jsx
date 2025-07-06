@@ -1,11 +1,11 @@
-import "./App.css"
-import "./styles/Todo.css"
+import "./App.css";
+import "./styles/Todo.css";
 import { useState, useEffect, useCallback } from "react";
 import { SideMenu, Header, TagDetailModal } from "./components"
 import { Space, Button, Drawer, Flex } from "antd"
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom"
 import { Planner, Todo, Tags } from "./pages"
-import { 
+import {
   loadEventsFromLocalStorage,
   loadRatingsFromLocalStorage,
   useTodoManagement,
@@ -16,6 +16,7 @@ import {
   deleteTagObjectLocally,
   ensureTagsExistInCentralList,
   updateTagUsageLocally,
+  TASK_STATUS, // Import TASK_STATUS from todoTools
 } from "./tools"
 
 const loadedEvents = loadEventsFromLocalStorage()
@@ -26,7 +27,7 @@ export default function App() {
   const [events, setEvents] = useState([...loadedEvents]);
   const [ratingsOfEvents, setRatingsOfEvents] = useState([...loadedRatings]);
   const [openDrawer, setOpenDrawer] = useState(false);
-  
+
   const [allTags, setAllTags] = useState([...loadedAllTags]);
 
   // Effect to save allTags to local storage whenever 'allTags' state changes
@@ -39,18 +40,19 @@ export default function App() {
     tasks,
     onAddTask: originalOnAddTask, // Rename to avoid conflict with our wrapped version
     onEditTask: originalOnEditTask, // Rename to avoid conflict with our wrapped version
-    onUpdateTaskStatus:originalOnUpdateTaskStatus,
+    onUpdateTaskStatus: originalOnUpdateTaskStatus,
     onDeleteTask,
     onAddSubtask,
   } = useTodoManagement();
 
-  // --- Wrapped Task Management Functions to Ensure Tags Exist ---
+  // --- Wrapped Task Management Functions to Ensure Tags Exist ---\
+  //   Include the status when adding a new task - **UPDATED STATUS**
   // UPDATED: Add description parameter (optional, default "")
-  const handleAddTask = (text, tags, priority, description = "") => {
-    console.log("App.jsx: handleAddTask received:", { text, tags, priority, description }); // DEBUG LOG
+  const handleAddTask = useCallback((text, tags, priority, description = "", status = TASK_STATUS.NEW_ON_HOLD) => {
+    console.log("App.jsx: handleAddTask received:", { text, tags, priority, description, status }); // DEBUG LOG
     ensureTagsExistInCentralList(allTags, tags, setAllTags);
     // Pass description to originalOnAddTask if it supports it
-    originalOnAddTask(text, tags, priority, description);
+    originalOnAddTask(text, tags, priority, description, status);
     // NEW: Update lastUsedAt for each tag added to the new task
     setAllTags(prevTags => {
       let updatedTags = [...prevTags];
@@ -59,7 +61,7 @@ export default function App() {
       });
       return updatedTags;
     });
-  };
+  }, [allTags, originalOnAddTask]);
 
   // UPDATED: Ensure description is present when editing
   const handleEditTask = (id, updates) => {
@@ -81,10 +83,10 @@ export default function App() {
       description: typeof updates.description === "string"
         ? updates.description
         : (() => {
-            // Find the old task so we can fallback to its description or ""
-            const t = tasks.find(task => task.id === id);
-            return (t && typeof t.description === "string") ? t.description : "";
-          })()
+          // Find the old task so we can fallback to its description or ""
+          const t = tasks.find(task => task.id === id);
+          return (t && typeof t.description === "string") ? t.description : "";
+        })()
     });
   };
 
@@ -96,7 +98,7 @@ export default function App() {
   const handleEditTagObject = (tagId, updates) => {
     setAllTags(prevTags => editTagObjectLocally(prevTags, tagId, updates));
   };
-  
+
   // NEW: Wrapped Task Status Update Function
   const handleUpdateTaskStatus = (id, newStatus) => {
     // Find the task to get its tags before updating status
@@ -193,9 +195,9 @@ function Content({ operations }) {
   operations.taskOperations.onTagClick = (tag) => {
     navigate('/tags', { state: { selectedTag: tag } });
   };
-  
+
   console.log("All Tags before content: ", operations.tagOperations.allTags)
-  
+
   return (
     <div style={{ padding: 15 }}>
       <Routes>

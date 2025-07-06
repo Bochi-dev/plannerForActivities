@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
 import { Form, Input, Select, Button } from 'antd';
 import { PlusOutlined, StarOutlined, TagOutlined } from '@ant-design/icons';
-
+import { TASK_STATUS } from '../../tools/todoTools'; // Import TASK_STATUS
 const { Option } = Select;
 
 // Define your priority levels as in your original code
 const PRIORITY_LEVELS = [
   { value: 0, letter: 'C' },
   { value: 1, letter: 'B' },
-  { value: 2, letter: 'A' }
+  { value: 2, letter: 'A' },
+  { value: 3, letter: 'S' }
 ];
 
 // Main TaskForm component
@@ -52,6 +53,7 @@ export const TaskForm = ({
       });
       setEditingTask(null);
     } else {
+      //  Include the status when adding a new task - **UPDATED STATUS**
       onAddTask(taskText, tags || [], priority, description || "");
     }
 
