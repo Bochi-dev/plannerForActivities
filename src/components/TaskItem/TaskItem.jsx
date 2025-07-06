@@ -13,7 +13,6 @@ import { ClickableTag, SubtaskModal } from '../../components';
 // Corrected Import for todoTools: Direct import as it's not part of a barrel in App.jsx's context
 import { getPriorityDisplay } from '../../tools'; // Adjust path based on src/components/TaskItem/ to src/tools/todoTools.js
 
-
 const { Text } = Typography;
 
 export const TaskItem = ({
@@ -50,6 +49,16 @@ export const TaskItem = ({
   const taskPriority = task.priority !== undefined ? task.priority : 0;
   const priorityDisplay = getPriorityDisplay(taskPriority);
 
+  // -------------------- CHANGES BELOW ---------------------
+  // NEW: State and helper for description modal
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+
+  // Helper: Shorten description for preview
+  const previewDescription = (desc) => {
+    if (!desc) return "";
+    return desc.length > 60 ? desc.slice(0, 60) + "..." : desc;
+  };
+  // --------------------------------------------------------
 
   return (
     <div
@@ -138,6 +147,62 @@ export const TaskItem = ({
         </div>
       </div>
 
+      {/* -------------------- CHANGES BELOW -------------------- */}
+      {/* Description preview and modal */}
+      {task.description && task.description.trim() !== "" && (
+        <div style={{ margin: "8px 0", color: "#888" }}>
+          <em>
+            {previewDescription(task.description)}
+            {task.description.length > 60 && (
+              <button
+                style={{
+                  marginLeft: 8,
+                  color: "#3B82F6",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  fontSize: "inherit"
+                }}
+                onClick={() => setShowDescriptionModal(true)}
+              >
+                See details
+              </button>
+            )}
+          </em>
+        </div>
+      )}
+      {showDescriptionModal && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.3)",
+            zIndex: 1000
+          }}
+          onClick={() => setShowDescriptionModal(false)}
+        >
+          <div
+            className="modal-content"
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: "white",
+              borderRadius: 8,
+              maxWidth: 400,
+              margin: "10% auto",
+              padding: 24,
+              boxShadow: "0 6px 32px rgba(0,0,0,0.2)"
+            }}
+          >
+            <h3>Description</h3>
+            <p style={{ whiteSpace: "pre-line" }}>{task.description}</p>
+            <button onClick={() => setShowDescriptionModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
+      {/* ------------------------------------------------------- */}
+
       {/* Tags Display Section */}
       {task.tags && task.tags.length > 0 && (
         <div className="w-full mt-2 pt-2 border-t border-gray-200">
@@ -173,7 +238,6 @@ export const TaskItem = ({
         </div>
       </div>
 
-
       {/* Subtasks Display Section */}
       {task.subtasks && task.subtasks.length > 0 && (
         <div className="w-full mt-2 pt-2 border-t border-gray-200">
@@ -202,4 +266,3 @@ export const TaskItem = ({
     </div>
   );
 };
-

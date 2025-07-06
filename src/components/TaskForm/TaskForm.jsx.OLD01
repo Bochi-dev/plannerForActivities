@@ -1,61 +1,45 @@
-import React, { useEffect } from 'react';
-import { Form, Input, Select, Button } from 'antd';
-import { PlusOutlined, StarOutlined, TagOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import { Input, Button, Form, Select, Typography } from 'antd';
+import { PlusOutlined, TagOutlined, StarOutlined } from '@ant-design/icons'; // Added StarOutlined for priority icon
+
+// Import priority levels and helper function from todoTools
+// Adjusted path: trying a different relative path based on common resolution patterns in environments
+import { PRIORITY_LEVELS, getPriorityDisplay } from '../../tools'; // Changed from '../../tools/todoTools'
 
 const { Option } = Select;
 
-// Define your priority levels as in your original code
-const PRIORITY_LEVELS = [
-  { value: 0, letter: 'C' },
-  { value: 1, letter: 'B' },
-  { value: 2, letter: 'A' }
-];
-
-// Main TaskForm component
-export const TaskForm = ({
-  onAddTask,
-  onEditTask,
-  editingTask,
-  setEditingTask,
-  defaultTagsForNewTask = [],
-  setAllAvailableTags
-}) => {
+export const TaskForm = ({ onAddTask, onEditTask, editingTask, setEditingTask, defaultTagsForNewTask = [] }) => {
   const [form] = Form.useForm();
+  const [allAvailableTags, setAllAvailableTags] = useState([]); // State to manage a list of previously used tags (optional)
 
   useEffect(() => {
     if (editingTask) {
       form.setFieldsValue({
         taskText: editingTask.text,
         tags: editingTask.tags || [],
-        priority: editingTask.priority ?? PRIORITY_LEVELS[0].value,
-        description: editingTask.description || "", // Pre-fill description if editing
+        priority: editingTask.priority !== undefined ? editingTask.priority : PRIORITY_LEVELS[0].value, // Set existing priority or default
       });
     } else {
       form.setFieldsValue({
         taskText: '',
         tags: defaultTagsForNewTask,
-        priority: PRIORITY_LEVELS[0].value,
-        description: '', // Reset description for new task
+        priority: PRIORITY_LEVELS[0].value, // Default to lowest priority 'C' for new tasks
       });
     }
-  }, [editingTask, form, defaultTagsForNewTask]);
+  }, [editingTask, form, defaultTagsForNewTask]); // Add defaultTagsForNewTask to dependencies
 
   const handleFinish = (values) => {
-    const { taskText, tags, priority, description } = values;
+    const { taskText, tags, priority } = values; // Destructure priority
 
     if (editingTask) {
-      onEditTask(editingTask.id, {
-        text: taskText,
-        tags: tags || [],
-        priority: priority,
-        description: description || ""
-      });
+      onEditTask(editingTask.id, { text: taskText, tags: tags || [], priority: priority }); // Pass priority to onEditTask
       setEditingTask(null);
     } else {
-      onAddTask(taskText, tags || [], priority, description || "");
+      onAddTask(taskText, tags || [], priority); // Pass priority to onAddTask
     }
 
-    form.resetFields(['taskText', 'description']); // Reset description and taskText after submission
+    form.resetFields(['taskText']); // Only reset taskText after submission
+    // Tags and Priority will be reset by the useEffect handling default/editing values.
 
     setAllAvailableTags(prevTags => {
       const newTags = tags ? tags.filter(tag => !prevTags.includes(tag)) : [];
@@ -76,7 +60,7 @@ export const TaskForm = ({
         className="flex-grow w-full"
       >
         <Input
-          placeholder={editingTask ? "Edit task..." : "Add a new task..."}
+          placeholder={editingTask ? "Edit task description..." : "Add a new task description..."}
           className="rounded-full p-2.5 border border-blue-200 focus:ring-blue-500 focus:border-blue-500 text-lg"
           autoFocus
         />
@@ -99,11 +83,11 @@ export const TaskForm = ({
         />
       </Form.Item>
 
-      {/* Priority Select Box */}
+      {/* NEW: Priority Select Box */}
       <Form.Item
         name="priority"
         noStyle
-        initialValue={PRIORITY_LEVELS[0].value}
+        initialValue={PRIORITY_LEVELS[0].value} // Default to 'C' (0) if not explicitly set by useEffect
         className="w-full sm:w-auto flex-shrink-0"
       >
         <Select
@@ -120,29 +104,24 @@ export const TaskForm = ({
         </Select>
       </Form.Item>
 
-      {/* Description TextArea */}
-      <Form.Item
-        name="description"
-        className="w-full sm:w-auto flex-grow"
-        style={{ marginBottom: 0, minWidth: 200, maxWidth: 400 }}
-      >
-        <Input.TextArea
-          placeholder="Add a description (optional)"
-          autoSize={{ minRows: 1, maxRows: 4 }}
-          style={{ borderRadius: '10px' }}
-        />
-      </Form.Item>
-
       <Button
         type="primary"
         htmlType="submit"
         className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-full shadow-md transition duration-200 text-lg flex items-center justify-center"
         icon={<PlusOutlined />}
       >
-        {editingTask ? "Update" : "Add"}
+        {editingTask ? "Update Task" : "Add Task"}
       </Button>
+      {editingTask && (
+        <Button
+          type="default"
+          onClick={() => setEditingTask(null)}
+          className="w-full sm:w-auto bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-full shadow-md transition duration-200"
+        >
+          Cancel
+        </Button>
+      )}
     </Form>
   );
 };
 
-export default TaskForm;

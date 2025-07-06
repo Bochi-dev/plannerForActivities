@@ -22,12 +22,11 @@ const loadTasksFromLocalStorage = () => {
       return [];
     }
     const tasks = JSON.parse(tasksJsonString);
-    // Ensure subtasks and tags are arrays, and description is present (backward compatibility)
+    // Ensure subtasks and tags are arrays, even if saved as null/undefined
     return tasks.map(task => ({
       ...task,
       subtasks: task.subtasks || [],
-      tags: task.tags || [], // Ensure tags are an array
-      description: typeof task.description === "string" ? task.description : "", // Ensure description is always present
+      tags: task.tags || [] // Ensure tags are an array
     }));
   } catch (error) {
     console.error('Error loading tasks from local storage:', error);
@@ -64,23 +63,13 @@ export const useTodoManagement = () => {
 
   // --- Task Management Operations using todoTools.js ---
 
-  // UPDATED: Accept optional description on add
-  const handleAddTask = useCallback((text, tags, priority, description = "") => {
-    console.log("useTodoManagement.js: onAddTask received:", { text, tags, priority, description }); // DEBUG LOG
-    setTasks(prevTasks => addTaskLocally(prevTasks, text, tags, priority, description));
+  const handleAddTask = useCallback((text, tags, priority) => {
+    console.log("useTodoManagement.js: onAddTask received:", { text, tags, priority }); // DEBUG LOG
+    setTasks(prevTasks => addTaskLocally(prevTasks, text, tags, priority)); // Pass priority to addTaskLocally
   }, []);
 
-  // UPDATED: Ensure description is part of updates, defaulting to "" for legacy tasks
   const handleEditTask = useCallback((id, updates) => {
-    setTasks(prevTasks => editTaskLocally(prevTasks, id, {
-      ...updates,
-      description: typeof updates.description === "string"
-        ? updates.description
-        : (() => {
-            const t = prevTasks.find(task => task.id === id);
-            return (t && typeof t.description === "string") ? t.description : "";
-          })()
-    }));
+    setTasks(prevTasks => editTaskLocally(prevTasks, id, updates));
   }, []);
 
   const handleUpdateTaskStatus = useCallback((id, newStatus) => {
@@ -107,3 +96,4 @@ export const useTodoManagement = () => {
     onAddSubtask: handleAddSubtask,
   };
 };
+

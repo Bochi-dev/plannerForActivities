@@ -1,5 +1,5 @@
 // src/todoTools.js
-// This file contains utility functions for managing tasks locally, now with tagging and priority support.
+// This file contains utility functions for managing tasks locally, now with tagging and priority support (and description field).
 
 /**
  * Generates a simple unique ID for tasks and subtasks.
@@ -41,31 +41,43 @@ export const getPriorityDisplay = (priorityValue) => {
  * @param {string} text - The text content of the new task.
  * @param {Array<string>} tags - An array of tags for the new task.
  * @param {number} [priority=0] - The priority level of the new task (0-3). Defaults to 0 (C).
+ * @param {string} [description=""] - The optional description for the new task.
  * @returns {Array<Object>} A new array of tasks with the added task.
  */
-export const addTaskLocally = (currentTasks, text, tags = [], priority = 0) => { // NEW: Add priority parameter
+export const addTaskLocally = (currentTasks, text, tags = [], priority = 0, description = "") => {
     const newTask = {
         id: generateUniqueId(),
         text,
         status: 'drafted', // New tasks start as 'drafted'
         subtasks: [],      // Initialize with empty subtasks
         tags: tags,        // Add tags property
-        priority: priority, // NEW: Add priority property, defaulting to 0
+        priority: priority, // Add priority property, defaulting to 0
         createdAt: new Date().toISOString(), // Local timestamp
+        description: typeof description === "string" ? description : "", // NEW: Add description property
     };
     return [newTask, ...currentTasks]; // Add new task to the beginning
 };
 
 /**
- * Edits an existing task's text, tags, and/or priority.
+ * Edits an existing task's text, tags, priority, or description.
  * @param {Array<Object>} currentTasks - The current array of tasks.
  * @param {string} taskId - The ID of the task to edit.
- * @param {Object} updates - An object with properties to update (e.g., { text: 'New Text', tags: ['work'], priority: 2 }).
+ * @param {Object} updates - An object with properties to update (e.g., { text: 'New Text', tags: ['work'], priority: 2, description: 'Details' }).
  * @returns {Array<Object>} A new array of tasks with the updated task.
  */
 export const editTaskLocally = (currentTasks, taskId, updates) => {
     return currentTasks.map(task =>
-        task.id === taskId ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
+        task.id === taskId
+            ? {
+                ...task,
+                ...updates,
+                description:
+                  typeof updates.description === "string"
+                    ? updates.description
+                    : (typeof task.description === "string" ? task.description : ""),
+                updatedAt: new Date().toISOString()
+              }
+            : task
     );
 };
 
