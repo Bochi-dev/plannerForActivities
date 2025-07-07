@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { Button, Typography, Popconfirm, Tag } from 'antd'; // Keep Tag for subtasks if needed
+import { Button, Typography, Popconfirm, Menu, Dropdown, Tag, Modal, Card } from 'antd'; // Added Dropdown, Menu, Modal
 import {
   ArrowRightOutlined, ArrowLeftOutlined, PlusOutlined, SubnodeOutlined,
   EditOutlined, DeleteOutlined,
-  TagOutlined, StarOutlined
+  TagOutlined, StarOutlined, // StarOutlined for priority icon
+  MoreOutlined // For the dropdown trigger button
 } from '@ant-design/icons';
 
-// Corrected Imports for Components: Importing from the components barrel export
-// This assumes your src/components/index.js exports ClickableTag and SubtaskModal
-import { ClickableTag, SubtaskModal } from '../../components';
+// Corrected Imports: Assuming these are directly in their respective folders within components/
+import { ClickableTag, SubtaskModal } from '../../components'; // Using barrel import as per your structure
 
-// Corrected Import for todoTools: Direct import as it's not part of a barrel in App.jsx's context
-import { getPriorityDisplay } from '../../tools'; // Adjust path based on src/components/TaskItem/ to src/tools/todoTools.js
+// Corrected Import for todoTools: Path from components/TaskItem/ to tools/todoTools.js
+import { getPriorityDisplay } from '../../tools/todoTools'; // Adjusted path to be explicit and correct
+
 
 const { Text } = Typography;
 
@@ -26,6 +27,9 @@ export const TaskItem = ({
   onTagClick
 }) => {
   const [isSubtaskModalVisible, setIsSubtaskModalVisible] = useState(false);
+  // NEW: State for description modal
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+
 
   const isCompleted = task.status === 'completed';
 
@@ -41,34 +45,68 @@ export const TaskItem = ({
   const activeTaskTextColor = "text-white";
   const arrowColor = "text-gray-400"; // Gray for the arrow icon
 
-  // Common button styles (you can adjust these globally with Tailwind or Antd themes)
-  const baseButtonClasses = "rounded-md flex items-center justify-center py-1 px-2 text-xs font-medium transition duration-200";
-
   // Get priority display details
   // Ensure task.priority defaults to 0 if undefined (for old tasks or if not set)
   const taskPriority = task.priority !== undefined ? task.priority : 0;
   const priorityDisplay = getPriorityDisplay(taskPriority);
-
-  // -------------------- CHANGES BELOW ---------------------
-  // NEW: State and helper for description modal
-  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
 
   // Helper: Shorten description for preview
   const previewDescription = (desc) => {
     if (!desc) return "";
     return desc.length > 60 ? desc.slice(0, 60) + "..." : desc;
   };
-  // --------------------------------------------------------
+
+  // NEW: Menu for task options (consolidating all action buttons)
+  const taskActionsMenu = (
+    <Menu>
+      <Menu.Item key="edit" icon={<EditOutlined />} onClick={() => onEditClick(task)}>
+        Edit Task
+      </Menu.Item>
+      <Popconfirm
+        title="Delete task"
+        description="Are you sure you want to delete this task?"
+        onConfirm={() => onDeleteClick(task.id)}
+        okText="Yes"
+        cancelText="No"
+      >
+        <Menu.Item key="delete" icon={<DeleteOutlined />}>
+          Delete Task
+        </Menu.Item>
+      </Popconfirm>
+      {nextStatus && (
+        <Menu.Item key="nextStatus" icon={<ArrowRightOutlined />} onClick={() => onUpdateTaskStatus(task.id, nextStatus)}>
+          Move to {nextStatus.replace('-', ' ')}
+        </Menu.Item>
+      )}
+      {backStatus && (
+        <Menu.Item key="backStatus" icon={<ArrowLeftOutlined />} onClick={() => onUpdateTaskStatus(task.id, backStatus)}>
+          Move Back
+        </Menu.Item>
+      )}
+      <Menu.Item key="addSubtask" icon={<SubnodeOutlined />} onClick={showSubtaskModal}>
+        Add Subtask
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
-    <div
+    <Card
       className={`p-3 rounded-md shadow-sm transition duration-300 ease-in-out border border-gray-200
                   ${isCompleted ? 'bg-gray-200 text-gray-500 line-through' : 'bg-white text-gray-800'}`}
+      extra={<Dropdown overlay={taskActionsMenu} trigger={['click']} placement="bottomRight">
+          <Button
+            type="text"
+            size="small"
+            className="text-gray-500 hover:text-gray-700 p-1 rounded-full"
+            icon={<MoreOutlined className="text-lg" />}
+            aria-label="Task options"
+          />
+        </Dropdown>}
+      style={{padding: ""}}
     >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between flex-wrap gap-2">
-        {/* Top Row: Arrow icon, Task Text, and Action Buttons */}
+      <div className="flex items-start justify-between gap-2">
+        {/* Top Row: Arrow icon, Task Text, and Dropdown for Actions */}
         <div className="flex items-center flex-grow min-w-0 mr-2">
-          <ArrowRightOutlined className={`mr-2 ${arrowColor} text-lg`} />
           <Text
             className={`flex-grow break-words text-base font-medium p-1 px-2 rounded-md ${activeTaskBgColor} ${activeTaskTextColor}`}
             style={{ minWidth: '40px' }}
@@ -77,79 +115,11 @@ export const TaskItem = ({
           </Text>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2 flex-shrink-0">
-          {nextStatus && (
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => onUpdateTaskStatus(task.id, nextStatus)}
-              className={`${baseButtonClasses} bg-blue-500 hover:bg-blue-600 text-white`}
-              icon={<ArrowRightOutlined />}
-              aria-label={`Move to ${nextStatus.replace('-', ' ')}`}
-            >
-              {nextStatus === 'next-up' && 'Next up'}
-              {nextStatus === 'in-progress' && 'Progress'}
-              {nextStatus === 'in-review' && 'Review'}
-              {nextStatus === 'completed' && 'Complete'}
-            </Button>
-          )}
-
-          {backStatus && (
-            <Button
-              type="default"
-              size="small"
-              onClick={() => onUpdateTaskStatus(task.id, backStatus)}
-              className={`${baseButtonClasses} bg-gray-300 hover:bg-gray-400 text-gray-800`}
-              icon={<ArrowLeftOutlined />}
-              aria-label={`Move back to ${backStatus.replace('-', ' ')}`}
-            >
-              Back
-            </Button>
-          )}
-
-          <Button
-            type="default"
-            size="small"
-            onClick={showSubtaskModal}
-            className={`${baseButtonClasses} bg-purple-200 hover:bg-purple-300 text-purple-800`}
-            icon={<SubnodeOutlined />}
-            aria-label="Add Subtask"
-          >
-            Subtask
-          </Button>
-
-          {!isCompleted && (
-            <Button
-              type="text"
-              size="small"
-              className="text-blue-500 hover:text-blue-700 p-1 rounded-full"
-              onClick={() => onEditClick(task)}
-              aria-label="Edit task"
-              icon={<EditOutlined className="text-lg" />}
-            />
-          )}
-
-          <Popconfirm
-            title="Delete the task"
-            description="Are you sure to delete this task?"
-            onConfirm={() => onDeleteClick(task.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button
-              type="text"
-              size="small"
-              className="text-red-500 hover:text-red-700 p-1 rounded-full"
-              icon={<DeleteOutlined className="text-lg" />}
-              aria-label="Delete task"
-            />
-          </Popconfirm>
-        </div>
+        {/* Action Buttons - Replaced with Dropdown */}
+        
       </div>
 
-      {/* -------------------- CHANGES BELOW -------------------- */}
-      {/* Description preview and modal */}
+      {/* Description preview and modal (Preserved) */}
       {task.description && task.description.trim() !== "" && (
         <div style={{ margin: "8px 0", color: "#888" }}>
           <em>
@@ -173,38 +143,24 @@ export const TaskItem = ({
           </em>
         </div>
       )}
-      {showDescriptionModal && (
-        <div
-          className="modal-overlay"
-          style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.3)",
-            zIndex: 1000
-          }}
-          onClick={() => setShowDescriptionModal(false)}
-        >
-          <div
-            className="modal-content"
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: "white",
-              borderRadius: 8,
-              maxWidth: 400,
-              margin: "10% auto",
-              padding: 24,
-              boxShadow: "0 6px 32px rgba(0,0,0,0.2)"
-            }}
-          >
-            <h3>Description</h3>
-            <p style={{ whiteSpace: "pre-line" }}>{task.description}</p>
-            <button onClick={() => setShowDescriptionModal(false)}>Close</button>
-          </div>
-        </div>
-      )}
-      {/* ------------------------------------------------------- */}
+      {/* Using Ant Design Modal for the description to match other modals */}
+      <Modal
+        title={<Typography.Title level={4} className="text-center font-bold text-gray-800">Task Description</Typography.Title>}
+        open={showDescriptionModal}
+        onCancel={() => setShowDescriptionModal(false)}
+        footer={null} // No default footer buttons
+        centered
+        className="p-4 rounded-lg shadow-xl"
+        bodyStyle={{ padding: '24px' }}
+      >
+        <Typography.Paragraph style={{ whiteSpace: "pre-line" }}>{task.description}</Typography.Paragraph>
+        <Button onClick={() => setShowDescriptionModal(false)} className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md">
+          Close
+        </Button>
+      </Modal>
 
-      {/* Tags Display Section */}
+
+      {/* Tags Display Section (Preserved) */}
       {task.tags && task.tags.length > 0 && (
         <div className="w-full mt-2 pt-2 border-t border-gray-200">
           <Text className="text-sm font-semibold text-gray-600 flex items-center">
@@ -224,7 +180,7 @@ export const TaskItem = ({
         </div>
       )}
 
-      {/* Priority Display Section (Below Tags, Above Subtasks) */}
+      {/* Priority Display Section (Preserved) */}
       <div className="w-full mt-2 pt-2 border-t border-gray-200">
         <Text className="text-sm font-semibold text-gray-600 flex items-center">
           <StarOutlined className="mr-1" /> Priority:
@@ -232,14 +188,13 @@ export const TaskItem = ({
         <div className="flex flex-wrap gap-2 mt-1">
           <Tag
             className={`rounded-full px-3 py-1 text-sm font-medium ${priorityDisplay.colorClass}`}
-            // Using Ant Design Tag directly as priority tag is not clickable to filter, just display
           >
             {priorityDisplay.letter}
           </Tag>
         </div>
       </div>
 
-      {/* Subtasks Display Section */}
+      {/* Subtasks Display Section (Preserved) */}
       {task.subtasks && task.subtasks.length > 0 && (
         <div className="w-full mt-2 pt-2 border-t border-gray-200">
           <Text className="text-sm font-semibold text-gray-600">Subtasks:</Text>
@@ -257,13 +212,16 @@ export const TaskItem = ({
         </div>
       )}
 
-      {/* Subtask Modal */}
+      {/* Subtask Modal (Remains unchanged) */}
       <SubtaskModal
         open={isSubtaskModalVisible}
         onClose={closeSubtaskModal}
         parentTaskId={task.id}
         onAddSubtask={handleAddSubtaskForParent}
       />
-    </div>
+    </Card>
   );
 };
+
+export default TaskItem;
+

@@ -10,15 +10,6 @@ import { useTodoManagement } from '../../tools/useTodoManagement'; // Import the
 
 const { Text } = Typography;
 
-// Define styles for each TaskList column - **UPDATED Styling**
-const taskListColumnStyles = {
-  [TASK_STATUS.NEW_ON_HOLD]: 'bg-gray-100',
-  [TASK_STATUS.NEXT_UP]: 'bg-blue-100',
-  [TASK_STATUS.IN_PROGRESS]: 'bg-yellow-100',
-  [TASK_STATUS.IN_REVIEW]: 'bg-purple-100',
-  [TASK_STATUS.COMPLETED]: 'bg-green-100',
-};
-
 export const Todo = ({
   tasks,
   onAddTask: onAddTaskProp, // Renamed to avoid shadowing
@@ -185,75 +176,65 @@ export const Todo = ({
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 px-4 pb-4"> {/*  **UPDATED Grid Layout** */}
         {/* New / On Hold TaskList */}
-        <div className={` ${taskListColumnStyles[TASK_STATUS.NEW_ON_HOLD]} rounded-lg shadow-md p-4`}>
-          <TaskList
-            title="New / On Hold"  // **UPDATED Title**
-            tasks={newOnHoldTasks}
-            onEditClick={setEditingTask}
-            onDeleteClick={onDeleteTask}
-            onUpdateTaskStatus={onUpdateTaskStatus}
-            onAddSubtask={onAddSubtask}
-            onTagClick={onTagClick}
-            nextStatus={TASK_STATUS.NEXT_UP}  // **UPDATED nextStatus**
-            backStatus={null}
-          />
-        </div>
+        <TaskList
+          title="New / On Hold"  // **UPDATED Title**
+          tasks={newOnHoldTasks}
+          onEditClick={setEditingTask}
+          onDeleteClick={onDeleteTask}
+          onUpdateTaskStatus={onUpdateTaskStatus}
+          onAddSubtask={onAddSubtask}
+          onTagClick={onTagClick}
+          nextStatus={TASK_STATUS.NEXT_UP}  // **UPDATED nextStatus**
+          backStatus={null}
+        />
         {/* Next Up TaskList */}
-        <div className={` ${taskListColumnStyles[TASK_STATUS.NEXT_UP]} rounded-lg shadow-md p-4`}>
-          <TaskList
-            title="Next Up"  // **UPDATED Title**
-            tasks={nextUpTasks}
-            onEditClick={setEditingTask}
-            onDeleteClick={onDeleteTask}
-            onUpdateTaskStatus={onUpdateTaskStatus}
-            onAddSubtask={onAddSubtask}
-            onTagClick={onTagClick}
-            nextStatus={TASK_STATUS.IN_PROGRESS}  // **UPDATED nextStatus**
-            backStatus={TASK_STATUS.NEW_ON_HOLD} // **UPDATED backStatus**
-          />
-        </div>
+        <TaskList
+          title="Next Up"  // **UPDATED Title**
+          tasks={nextUpTasks}
+          onEditClick={setEditingTask}
+          onDeleteClick={onDeleteTask}
+          onUpdateTaskStatus={onUpdateTaskStatus}
+          onAddSubtask={onAddSubtask}
+          onTagClick={onTagClick}
+          nextStatus={TASK_STATUS.IN_PROGRESS}  // **UPDATED nextStatus**
+          backStatus={TASK_STATUS.NEW_ON_HOLD} // **UPDATED backStatus**
+        />
         {/* In Progress TaskList */}
-        <div className={` ${taskListColumnStyles[TASK_STATUS.IN_PROGRESS]} rounded-lg shadow-md p-4`}>
-          <TaskList
-            title="In Progress"  // **UPDATED Title**
-            tasks={inProgressTasks}
-            onEditClick={setEditingTask}
-            onDeleteClick={onDeleteTask}
-            onUpdateTaskStatus={onUpdateTaskStatus}
-            onAddSubtask={onAddSubtask}
-            onTagClick={onTagClick}
-            nextStatus={TASK_STATUS.IN_REVIEW}  // **UPDATED nextStatus**
-            backStatus={TASK_STATUS.NEXT_UP}  // **UPDATED backStatus**
-          />
-        </div>
+        <TaskList
+          title="In Progress"  // **UPDATED Title**
+          tasks={inProgressTasks}
+          onEditClick={setEditingTask}
+          onDeleteClick={onDeleteTask}
+          onUpdateTaskStatus={onUpdateTaskStatus}
+          onAddSubtask={onAddSubtask}
+          onTagClick={onTagClick}
+          nextStatus={TASK_STATUS.IN_REVIEW}  // **UPDATED nextStatus**
+          backStatus={TASK_STATUS.NEXT_UP}  // **UPDATED backStatus**
+        />
         {/* In Review TaskList */}
-        <div className={` ${taskListColumnStyles[TASK_STATUS.IN_REVIEW]} rounded-lg shadow-md p-4`}>
-          <TaskList
-            title="In Review"  // **UPDATED Title**
-            tasks={inReviewTasks}
-            onEditClick={setEditingTask}
-            onDeleteClick={onDeleteTask}
-            onUpdateTaskStatus={onUpdateTaskStatus}
-            onAddSubtask={onAddSubtask}
-            onTagClick={onTagClick}
-            nextStatus={TASK_STATUS.COMPLETED}  // **UPDATED nextStatus**
-            backStatus={TASK_STATUS.IN_PROGRESS}  // **UPDATED backStatus**
-          />
-        </div>
+        <TaskList
+          title="In Review"  // **UPDATED Title**
+          tasks={inReviewTasks}
+          onEditClick={setEditingTask}
+          onDeleteClick={onDeleteTask}
+          onUpdateTaskStatus={onUpdateTaskStatus}
+          onAddSubtask={onAddSubtask}
+          onTagClick={onTagClick}
+          nextStatus={TASK_STATUS.COMPLETED}  // **UPDATED nextStatus**
+          backStatus={TASK_STATUS.IN_PROGRESS}  // **UPDATED backStatus**
+        />
         {/* Completed TaskList */}
-        <div className={` ${taskListColumnStyles[TASK_STATUS.COMPLETED]} rounded-lg shadow-md p-4`}>
-          <TaskList
-            title="Completed"  // **UPDATED Title**
-            tasks={completedTasks}
-            onEditClick={setEditingTask}
-            onDeleteClick={onDeleteTask}
-            onUpdateTaskStatus={onUpdateTaskStatus}
-            onAddSubtask={onAddSubtask}
-            onTagClick={onTagClick}
-            nextStatus={null}
-            backStatus={TASK_STATUS.IN_REVIEW}  // **UPDATED backStatus**
-          />
-        </div>
+        <TaskList
+          title="Completed"  // **UPDATED Title**
+          tasks={completedTasks}
+          onEditClick={setEditingTask}
+          onDeleteClick={onDeleteTask}
+          onUpdateTaskStatus={onUpdateTaskStatus}
+          onAddSubtask={onAddSubtask}
+          onTagClick={onTagClick}
+          nextStatus={null}
+          backStatus={TASK_STATUS.IN_REVIEW}  // **UPDATED backStatus**
+        />
       </div>
     </div>
   );
