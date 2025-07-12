@@ -19,6 +19,10 @@ const items = [
     key: 'tags',
     label: 'Tags',
   },
+  {
+    key: 'papafrita',
+    label: 'Coursera Goals',
+  },
 ];
 export const SideMenu = ({ isInline = false }) => {
   const navigate = useNavigate()

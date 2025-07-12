@@ -1,44 +1,36 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  addTaskLocally,
-  editTaskLocally,
-  updateTaskStatusLocally,
-  deleteTaskLocally,
-  addSubtaskLocally,
-} from './todoTools'; // This path expects todoTools.js to be directly in the 'src/' directory
-                       // if useTodoManagement.js is in 'src/hooks/'
+// Assuming loadTasksFromLocalStorage, saveTasksToLocalStorage are in src/tools/index.js or src/tools/dataTools.js
+// Based on your App.jsx, it seems loadTasksFromLocalStorage and saveTasksToLocalStorage are not explicitly imported,
+// but rather handled by the custom hook itself or implicitly from a dataTools.js.
+// Let's assume they are defined within this file or easily accessible.
+// If they are in a separate file like dataTools.js, ensure to import them.
+// For now, I'll define them here for completeness based on previous context.
 
-// --- Local Storage Key for Tasks ---
+// Re-defining for clarity, assuming they were implicitly available or defined elsewhere
 const TODO_STORAGE_KEY = 'my_app_todo_tasks';
 
-/**
- * Loads tasks from local storage.
- * @returns {Array<Object>} The array of tasks, or an empty array if none found.
- */
 const loadTasksFromLocalStorage = () => {
   try {
     const tasksJsonString = localStorage.getItem(TODO_STORAGE_KEY);
     if (tasksJsonString === null) {
       return [];
     }
-    const tasks = JSON.parse(tasksJsonString);
-    // Ensure subtasks and tags are arrays, and description is present (backward compatibility)
-    return tasks.map(task => ({
+    let tasks = JSON.parse(tasksJsonString);
+    // Ensure subtasks and tags are arrays, even if saved as null/undefined
+    // NEW: Migrate 'drafted' status to 'new-on-hold'
+    tasks = tasks.map(task => ({
       ...task,
       subtasks: task.subtasks || [],
       tags: task.tags || [], // Ensure tags are an array
-      description: typeof task.description === "string" ? task.description : "", // Ensure description is always present
+      status: task.status === 'drafted' ? 'new-on-hold' : task.status // MIGRATION LOGIC
     }));
+    return tasks;
   } catch (error) {
     console.error('Error loading tasks from local storage:', error);
     return [];
   }
 };
 
-/**
- * Saves tasks to local storage.
- * @param {Array<Object>} tasksList - The array of tasks to save.
- */
 const saveTasksToLocalStorage = (tasksList) => {
   try {
     localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(tasksList));
@@ -47,6 +39,17 @@ const saveTasksToLocalStorage = (tasksList) => {
     console.error('Error saving tasks to local storage:', error);
   }
 };
+
+// Import all task utilities from todoTools.js
+import {
+  addTaskLocally,
+  editTaskLocally,
+  updateTaskStatusLocally,
+  deleteTaskLocally,
+  addSubtaskLocally,
+  toggleSubtaskCompleteLocally // Ensure this is imported if used
+} from './todoTools'; // Path from src/tools/useTodoManagement.js to src/tools/todoTools.js
+
 
 /**
  * Custom React Hook for managing To-Do tasks locally.
@@ -64,23 +67,13 @@ export const useTodoManagement = () => {
 
   // --- Task Management Operations using todoTools.js ---
 
-  // UPDATED: Accept optional description on add
-  const handleAddTask = useCallback((text, tags, priority, description = "") => {
-    console.log("useTodoManagement.js: onAddTask received:", { text, tags, priority, description }); // DEBUG LOG
-    setTasks(prevTasks => addTaskLocally(prevTasks, text, tags, priority, description));
+  // onAddTask now accepts priority
+  const handleAddTask = useCallback((text, tags, priority) => {
+    setTasks(prevTasks => addTaskLocally(prevTasks, text, tags, priority));
   }, []);
 
-  // UPDATED: Ensure description is part of updates, defaulting to "" for legacy tasks
   const handleEditTask = useCallback((id, updates) => {
-    setTasks(prevTasks => editTaskLocally(prevTasks, id, {
-      ...updates,
-      description: typeof updates.description === "string"
-        ? updates.description
-        : (() => {
-            const t = prevTasks.find(task => task.id === id);
-            return (t && typeof t.description === "string") ? t.description : "";
-          })()
-    }));
+    setTasks(prevTasks => editTaskLocally(prevTasks, id, updates));
   }, []);
 
   const handleUpdateTaskStatus = useCallback((id, newStatus) => {
@@ -98,6 +91,12 @@ export const useTodoManagement = () => {
     setTasks(prevTasks => addSubtaskLocally(prevTasks, parentTaskId, subtaskText));
   }, []);
 
+  // Assuming onToggleSubtaskComplete is used and needs to be returned
+  const handleToggleSubtaskComplete = useCallback((parentTaskId, subtaskId) => {
+    setTasks(prevTasks => toggleSubtaskCompleteLocally(prevTasks, parentTaskId, subtaskId));
+  }, []);
+
+
   return {
     tasks,
     onAddTask: handleAddTask,
@@ -105,5 +104,7 @@ export const useTodoManagement = () => {
     onUpdateTaskStatus: handleUpdateTaskStatus,
     onDeleteTask: handleDeleteTask,
     onAddSubtask: handleAddSubtask,
+    onToggleSubtaskComplete: handleToggleSubtaskComplete, // Ensure this is returned if used
   };
 };
+

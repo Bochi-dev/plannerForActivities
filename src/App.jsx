@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { SideMenu, Header, TagDetailModal } from "./components"
 import { Space, Button, Drawer, Flex } from "antd"
 import { Route, Routes, useNavigate, useLocation } from "react-router-dom"
-import { Planner, Todo, Tags } from "./pages"
+import { Planner, Todo, Tags, Papafritapage } from "./pages"
 import {
   loadEventsFromLocalStorage,
   loadRatingsFromLocalStorage,
@@ -236,6 +236,10 @@ function Content({ operations }) {
             // onTagClick is passed to TagsPage itself, for when a tag is clicked within its left panel
             onTagClick={operations.taskOperations.onTagClick}
           />}
+        />
+        <Route
+            path="papafrita"
+            element={<Papafritapage/>}
         />
       </Routes>
     </div>
